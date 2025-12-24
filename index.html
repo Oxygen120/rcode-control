@@ -2,44 +2,32 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>R-CODE NEON • DEPTH</title>
+<title>R-CODE NEON • FINAL LOCK</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 :root{--neon:#00ff9c}
 *{box-sizing:border-box}
 html,body{height:100%}
 body{
-  margin:0;
-  font-family:Courier New,monospace;
-  background:#000;
-  color:var(--neon);
-  overflow:hidden
+  margin:0;font-family:Courier New,monospace;
+  background:#000;color:var(--neon);overflow:hidden
 }
 #matrix{position:fixed;inset:0;z-index:0}
-.wrap{
-  position:relative;z-index:2;
-  min-height:100vh;
-  display:flex;align-items:center;justify-content:center;
-  padding:10px
-}
+.wrap{position:relative;z-index:2;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:10px}
 .container{
   width:100%;max-width:600px;
   background:rgba(10,15,20,.9);
   border:1px solid var(--neon);
-  border-radius:16px;
-  padding:18px;
+  border-radius:16px;padding:18px;
   box-shadow:0 0 25px rgba(0,255,156,.5)
 }
 h1{text-align:center;font-size:18px;margin:0 0 12px}
 label{font-size:12px;opacity:.8}
 input,textarea,select,button{
-  width:100%;
-  background:#000;
-  color:var(--neon);
+  width:100%;background:#000;color:var(--neon);
   border:1px solid var(--neon);
   border-radius:10px;
-  padding:10px;
-  margin:6px 0;
+  padding:10px;margin:6px 0;
   font-family:inherit
 }
 textarea{min-height:120px;resize:none}
@@ -71,7 +59,7 @@ footer{text-align:center;font-size:11px;opacity:.6;margin-top:8px}
   <span>Normal</span><span>Chaos</span><span>Extreme</span>
 </div>
 
-<label>EXPIRY (encode time)</label>
+<label>EXPIRY</label>
 <div class="row">
   <input id="expiryValue" type="number" min="0">
   <select id="expiryUnit">
@@ -96,7 +84,7 @@ footer{text-align:center;font-size:11px;opacity:.6;margin-top:8px}
 <textarea id="output" readonly></textarea>
 <button onclick="copyOutput()">📋 COPY</button>
 
-<footer>Inner R-CODE • Outer Chaos • Depth Slider</footer>
+<footer>Fixed Alphabet • Chaos • Depth Locked</footer>
 </div>
 </div>
 
@@ -121,18 +109,11 @@ setInterval(()=>{
 },33);
 
 /* FX */
-const TAUNTS=[
- "😈 WRONG KEY",
- "🤡 Nice try",
- "💀 Decode failed",
- "🚫 Access denied",
- "🧱 Blocked"
-];
+const TAUNTS=["😈 WRONG KEY","🤡 Nice try","💀 Decode failed"];
 function typeOut(txt){
  output.value="";let i=0;
  const t=setInterval(()=>{
   output.value+=txt[i++]||"";
-  output.scrollTop=output.scrollHeight;
   if(i>txt.length)clearInterval(t);
  },18);
 }
@@ -167,45 +148,41 @@ function generateKey(){
  key.value=k;navigator.clipboard.writeText(k);
 }
 
-/* INNER R-CODE */
-function coreEncode(k,txt,ms){
- let d=te.encode(txt),kb=te.encode(k);
+/* FIRST LAYER — FIXED SUBSTITUTION */
+const SUB_PLAIN="ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+const SUB_CIPHER="LZFQWERTYUIOPASDGHJKMNBVCX";
+const ENC={},DEC={};
+for(let i=0;i<26;i++){ENC[SUB_PLAIN[i]]=SUB_CIPHER[i];DEC[SUB_CIPHER[i]]=SUB_PLAIN[i];}
+function subEnc(t){return t.replace(/[A-Za-z]/g,c=>{const u=c.toUpperCase();if(!ENC[u])return c;const r=ENC[u];return c===u?r:r.toLowerCase()})}
+function subDec(t){return t.replace(/[A-Za-z]/g,c=>{const u=c.toUpperCase();if(!DEC[u])return c;const r=DEC[u];return c===u?r:r.toLowerCase()})}
+
+/* CORE */
+function coreEncode(k,t,ms){
+ let d=te.encode(t),kb=te.encode(k);
  for(let i=0;i<800;i++)d=xorBytes(d,kb);
- const payload=toB64(d);
- const token=hash32(k+payload).slice(0,8);
+ const p=toB64(d);
+ const tok=hash32(k+p).slice(0,8);
  const exp=ms?Date.now()+ms:0;
- return "RC14::"+exp+"::"+payload+"::"+token;
+ return "RC14::"+exp+"::"+p+"::"+tok;
 }
-function coreDecode(k,enc){
- if(!enc.startsWith("RC14::"))return null;
- const p=enc.split("::");if(p.length!==4)return null;
- const [,exp,payload,token]=p;
+function coreDecode(k,e){
+ if(!e.startsWith("RC14::"))return null;
+ const p=e.split("::");if(p.length!==4)return null;
+ const [,exp,pay,tok]=p;
  if(exp!=="0"&&Date.now()>+exp)return null;
- let d;try{d=fromB64(payload)}catch{return null}
+ let d;try{d=fromB64(pay)}catch{return null}
  const kb=te.encode(k);
  for(let i=0;i<800;i++)d=xorBytes(d,kb);
- if(hash32(k+payload).slice(0,8)!==token)return null;
+ if(hash32(k+pay).slice(0,8)!==tok)return null;
  return td.decode(d);
 }
 
-/* OUTER CHAOS (STABLE) */
-function outerEncodeChaos(str){
- let arr=[];
- for(let c of str){
-  arr.push((c.charCodeAt(0)+18).toString(36));
- }
- return "ΩX::"+arr.join(".");
-}
-function outerDecodeChaos(str){
- if(!str.startsWith("ΩX::"))return null;
- const body=str.slice(4).split(".");
- let out="";
- for(let p of body){
-  const n=parseInt(p,36);
-  if(isNaN(n))return null;
-  out+=String.fromCharCode(n-18);
- }
- return out;
+/* OUTER CHAOS */
+function outerEnc(s){return "ΩX::"+s.split("").map(c=>(c.charCodeAt(0)+18).toString(36)).join(".")}
+function outerDec(s){
+ if(!s.startsWith("ΩX::"))return null;
+ let o="";for(let p of s.slice(4).split(".")){const n=parseInt(p,36);if(isNaN(n))return null;o+=String.fromCharCode(n-18)}
+ return o;
 }
 
 /* FLOW */
@@ -213,12 +190,11 @@ function encode(){
  const k=key.value,txt=input.value;
  if(!k||!txt)return alert("Key & text required");
  const ms=expiryToMs(expiryValue.value,expiryUnit.value);
- const depth=+document.getElementById("depth").value;
-
- let out=coreEncode(k,txt,ms);
- if(depth>=2) out=outerEncodeChaos(out);
- if(depth>=3) out=outerEncodeChaos(out);
-
+ const d=+depth.value;
+ let stage=subEnc(txt);
+ let out=coreEncode(k,stage,ms);
+ if(d>=2)out=outerEnc(out);
+ if(d>=3)out=outerEnc(out);
  output.value=out;
 }
 function decode(){
@@ -226,18 +202,13 @@ function decode(){
  if(!k||!enc)return alert("Key & data required");
  runProgress(()=>{
   let cur=enc;
-  for(let i=0;i<2;i++){
-   const t=outerDecodeChaos(cur);
-   if(t)cur=t;
-  }
-  const res=coreDecode(k,cur);
-  if(res)typeOut(res);
+  for(let i=0;i<2;i++){const t=outerDec(cur);if(t)cur=t}
+  const r=coreDecode(k,cur);
+  if(r)typeOut(subDec(r));
   else typeOut(TAUNTS[Math.random()*TAUNTS.length|0]);
  });
 }
-
-/* COPY */
-function copyOutput(){if(output.value)navigator.clipboard.writeText(output.value);}
+function copyOutput(){if(output.value)navigator.clipboard.writeText(output.value)}
 </script>
 </body>
 </html>
