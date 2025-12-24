@@ -1,5 +1,5 @@
 {
-  "enabled": false,
+  "enabled": true,
   "mode": "normal",
   "message": "Access allowed by owner",
   "expiresAt": "2025-12-31T23:59:00",
