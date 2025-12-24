@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ADMIN CONTROL • R-CODE</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+:root{--neon:#00ff9c}
+*{box-sizing:border-box}
+body{
+  margin:0;font-family:Courier New,monospace;
+  background:#000;color:var(--neon);
+  min-height:100vh;display:flex;align-items:center;justify-content:center
+}
+.panel{
+  width:100%;max-width:420px;
+  border:1px solid var(--neon);
+  border-radius:16px;
+  padding:18px;
+  box-shadow:0 0 30px rgba(0,255,156,.5);
+  background:rgba(10,15,20,.9)
+}
+h1{text-align:center;font-size:18px;margin:0 0 14px}
+button{
+  width:100%;
+  background:#000;color:var(--neon);
+  border:1px solid var(--neon);
+  border-radius:12px;
+  padding:12px;margin:6px 0;
+  font-weight:bold;cursor:pointer
+}
+button.red{color:#ff4444;border-color:#ff4444}
+button.yellow{color:#ffcc00;border-color:#ffcc00}
+textarea{
+  width:100%;min-height:140px;
+  background:#000;color:var(--neon);
+  border:1px solid var(--neon);
+  border-radius:12px;
+  padding:10px;margin-top:10px;
+  font-size:12px
+}
+small{opacity:.7}
+hr{border-color:#033;margin:12px 0}
+</style>
+</head>
+
+<body>
+<div class="panel">
+<h1>🧿 ADMIN CONTROL</h1>
+
+<button onclick="openGitHub()">📝 EDIT control.json</button>
+
+<hr>
+
+<button onclick="preset('enable')">🟢 ENABLE SYSTEM</button>
+<button class="red" onclick="preset('disable')">🔴 DISABLE SYSTEM</button>
+<button class="red" onclick="preset('seized')">🚨 SERVER SEIZED</button>
+<button class="yellow" onclick="preset('expiry')">⏳ SET AUTO EXPIRY</button>
+
+<textarea id="jsonBox" placeholder="Preset JSON will appear here..."></textarea>
+<button onclick="copy()">📋 COPY JSON</button>
+
+<small>
+• Buttons do NOT auto-change files<br>
+• Edit & Commit on GitHub required<br>
+• Static & safe control system
+</small>
+</div>
+
+<script>
+const GITHUB_EDIT_URL =
+"https://github.com/Oxygen120/rcode-control/edit/main/control.json";
+
+function openGitHub(){
+  window.open(GITHUB_EDIT_URL,"_blank");
+}
+
+function preset(type){
+  let json="";
+  const future = new Date(Date.now()+24*60*60*1000).toISOString().slice(0,19);
+  if(type==="enable"){
+    json=`{
+  "enabled": true,
+  "mode": "normal",
+  "message": "Access allowed by owner",
+  "expiresAt": "2025-12-31T23:59:00",
+  "blockedIPs": [],
+  "allowedIPs": []
+}`;
+  }
+  if(type==="disable"){
+    json=`{
+  "enabled": false,
+  "mode": "normal",
+  "message": "Access revoked by owner",
+  "expiresAt": "2025-12-31T23:59:00",
+  "blockedIPs": [],
+  "allowedIPs": []
+}`;
+  }
+  if(type==="seized"){
+    json=`{
+  "enabled": true,
+  "mode": "seized",
+  "message": "Seized by authority",
+  "expiresAt": "2025-12-31T23:59:00",
+  "blockedIPs": [],
+  "allowedIPs": []
+}`;
+  }
+  if(type==="expiry"){
+    json=`{
+  "enabled": true,
+  "mode": "normal",
+  "message": "Auto expired",
+  "expiresAt": "${future}",
+  "blockedIPs": [],
+  "allowedIPs": []
+}`;
+  }
+  document.getElementById("jsonBox").value=json;
+}
+
+function copy(){
+  const t=document.getElementById("jsonBox");
+  if(!t.value) return alert("Nothing to copy");
+  navigator.clipboard.writeText(t.value);
+  alert("JSON copied");
+}
+</script>
+</body>
+</html>
