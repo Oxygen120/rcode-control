@@ -31,7 +31,7 @@ input,textarea,select,button{
 textarea{min-height:120px;resize:none}
 .row{display:flex;gap:10px;align-items:center}
 button{cursor:pointer;font-weight:bold}
-button.small{flex:0.4}
+button.small{flex:.4}
 .progress{width:100%;height:8px;background:#022;border-radius:6px;overflow:hidden}
 .bar{height:100%;width:0%;background:linear-gradient(90deg,#00ff9c,#00cfff)}
 footer{text-align:center;font-size:11px;opacity:.6;margin-top:8px}
@@ -47,13 +47,13 @@ footer{text-align:center;font-size:11px;opacity:.6;margin-top:8px}
 
 <label>MASTER KEY</label>
 <div class="row">
-  <input id="key" placeholder="Enter or generate key">
+  <input id="key">
   <button class="small" onclick="generateKey()">🎲</button>
 </div>
 
 <label>EXPIRY (encode time)</label>
 <div class="row">
-  <input id="expiryValue" type="number" min="0" placeholder="Value">
+  <input id="expiryValue" type="number" min="0">
   <select id="expiryUnit">
     <option value="none">No Expiry</option>
     <option value="minutes">Minutes</option>
@@ -72,95 +72,43 @@ footer{text-align:center;font-size:11px;opacity:.6;margin-top:8px}
 
 <div class="progress"><div class="bar" id="bar"></div></div>
 
-<label>OUTPUT</label>
+<label>OUTPUT (Terminal)</label>
 <textarea id="output" readonly></textarea>
 <button onclick="copyOutput()">📋 COPY</button>
 
-<footer>Matrix • Static Admin • JSON Control • Expiry • Random Key</footer>
+<footer>Matrix • JSON Control • Taunts • Typing FX</footer>
 </div>
 </div>
 
 <script>
-/* ================= CONTROL + ADMIN ================= */
-const CONTROL_URL = "https://oxygen120.github.io/rcode-control/control.json";
-const ADMIN_SECRET = "wallah-habibi";
+/* ================= TAUNTS ================= */
+const TAUNTS=[
+ "😈 WRONG KEY, genius.",
+ "🤡 Nice try. Still wrong.",
+ "💀 System laughing at you.",
+ "🚫 Access denied. Learn typing.",
+ "🧱 You hit a wall."
+];
 
-function isAdmin(){
-  const p=new URLSearchParams(location.search);
-  return p.get("admin")==="on" && p.get("key")===ADMIN_SECRET;
+/* ================= TYPING EFFECT ================= */
+function typeOut(txt,cb){
+ output.value=""; let i=0;
+ const t=setInterval(()=>{
+  output.value+=txt[i++]||"";
+  output.scrollTop=output.scrollHeight;
+  if(i>txt.length){clearInterval(t);cb&&cb();}
+ },20);
 }
 
-/* Local usage counter */
-let usage = Number(localStorage.getItem("usage")||0)+1;
-localStorage.setItem("usage",usage);
-
-/* IP */
-async function getIP(){
-  try{
-    const r=await fetch("https://api.ipify.org?format=json");
-    const j=await r.json(); return j.ip;
-  }catch{ return "0.0.0.0"; }
+/* ================= PROGRESS ================= */
+function runProgress(done){
+ bar.style.width="0%"; let p=0;
+ const t=setInterval(()=>{
+  p+=Math.random()*18;
+  if(p>=100){p=100;bar.style.width="100%";clearInterval(t);done();}
+  bar.style.width=p+"%";
+ },120);
 }
-
-/* Lock screens */
-function lockPage(t,m){
-  document.body.innerHTML=`
-  <div style="background:black;color:#00ff9c;height:100vh;
-  display:flex;align-items:center;justify-content:center;text-align:center">
-    <div><h1>${t}</h1><p>${m}</p></div>
-  </div>`;
-}
-function seizedScreen(){
-  document.body.innerHTML=`
-  <div style="background:black;color:red;height:100vh;
-  display:flex;align-items:center;justify-content:center;text-align:center">
-    <div>
-      <h1>🚨 SERVER SEIZED</h1>
-      <p>This service has been seized.</p>
-      <p>Ref: RC-${Math.floor(Math.random()*999999)}</p>
-    </div>
-  </div>`;
-}
-
-/* Admin panel */
-function showAdminPanel(ip){
-  const d=document.createElement("div");
-  d.style=`position:fixed;top:10px;right:10px;z-index:9999;
-  background:#000;border:1px solid #00ff9c;color:#00ff9c;
-  padding:12px;border-radius:12px;font-size:12px;width:240px`;
-  d.innerHTML=`
-  <b>🧿 ADMIN PANEL</b><hr>
-  IP: ${ip}<br>
-  Local usage: ${usage}<hr>
-  Edit <code>control.json</code><br>
-  enabled / mode / expiry / IPs`;
-  document.body.appendChild(d);
-}
-
-/* Control check */
-async function checkControl(){
-  try{
-    const r=await fetch(CONTROL_URL+"?t="+Date.now(),{cache:"no-store"});
-    const c=await r.json();
-
-    if(c.mode==="seized") return seizedScreen();
-    if(c.expiresAt && new Date()>new Date(c.expiresAt))
-      return lockPage("⏳ EXPIRED","Access expired");
-    if(c.enabled===false)
-      return lockPage("⛔ REVOKED",c.message||"Blocked");
-
-    const ip=await getIP();
-    if(c.blockedIPs?.includes(ip))
-      return lockPage("🚫 BLOCKED","IP blocked");
-    if(c.allowedIPs?.length && !c.allowedIPs.includes(ip))
-      return lockPage("🚫 DENIED","IP not allowed");
-
-    if(isAdmin()) showAdminPanel(ip);
-  }catch{
-    lockPage("⚠️ ERROR","Control not reachable");
-  }
-}
-checkControl();
 
 /* ================= MATRIX ================= */
 const canvas=document.getElementById("matrix"),ctx=canvas.getContext("2d");
@@ -181,7 +129,7 @@ setInterval(()=>{
  }
 },33);
 
-/* ================= CRYPTO + EXPIRY ================= */
+/* ================= CRYPTO ================= */
 const te=new TextEncoder(),td=new TextDecoder();
 function hash32(s){let h=2166136261;for(let c of s){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return(h>>>0).toString(16)}
 function xorBytes(d,k){const o=new Uint8Array(d.length);for(let i=0;i<d.length;i++)o[i]=d[i]^k[i%k.length];return o}
@@ -197,26 +145,14 @@ function expiryToMs(v,u){
  return 0;
 }
 
-/* Random key */
+/* ================= RANDOM KEY ================= */
 function generateKey(){
  const c="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%!*";
  let k="";for(let i=0;i<16;i++)k+=c[Math.random()*c.length|0];
- key.value=k;
- navigator.clipboard.writeText(k);
- alert("🔑 Random key generated & copied");
+ key.value=k; navigator.clipboard.writeText(k);
 }
 
-/* Progress */
-function runProgress(done){
- bar.style.width="0%";let p=0;
- const t=setInterval(()=>{
-  p+=Math.random()*20;
-  if(p>=100){p=100;clearInterval(t);done()}
-  bar.style.width=p+"%";
- },120);
-}
-
-/* Encode / Decode */
+/* ================= ENCODE / DECODE ================= */
 function encode(){
  const k=key.value,txt=input.value;
  if(!k||!txt)return alert("Key & text required");
@@ -231,21 +167,21 @@ function encode(){
 function decode(){
  const k=key.value,enc=input.value;
  if(!k||!enc)return alert("Key & data required");
- let raw;try{raw=atob(enc)}catch{return output.value="Invalid"};
+ let raw;try{raw=atob(enc)}catch{return typeOut("Invalid data")};
  const [token,exp,b64]=raw.split("|");
- if(exp!=="0" && Date.now()>+exp) return output.value="⏳ MESSAGE EXPIRED";
+ if(exp!=="0"&&Date.now()>+exp) return typeOut("⏳ MESSAGE EXPIRED");
  runProgress(()=>{
   let d=fromB64(b64),kb=te.encode(k);
   for(let i=0;i<1000;i++) d=xorBytes(d,kb);
-  if(hash32(k+toB64(d))!==token) return output.value="❌ WRONG KEY";
-  output.value=td.decode(d);
+  if(hash32(k+toB64(d))!==token)
+    return typeOut(TAUNTS[Math.random()*TAUNTS.length|0]);
+  typeOut(td.decode(d));
  });
 }
 
 function copyOutput(){
  if(!output.value)return;
  navigator.clipboard.writeText(output.value);
- alert("Copied");
 }
 </script>
 </body>
