@@ -9,13 +9,15 @@
 *{box-sizing:border-box}
 html,body{height:100%}
 body{
-  margin:0;font-family:Courier New,monospace;color:var(--neon);
-  overflow:hidden;background:#000;
+  margin:0;font-family:Courier New,monospace;
+  color:var(--neon);overflow:hidden;
 }
-/* ===== MATRIX ===== */
+
+/* ===== MATRIX CANVAS ===== */
 #matrix{position:fixed;inset:0;z-index:0;background:#000}
+
 /* ===== UI ===== */
-.wrap{position:relative;z-index:2;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:10px}
+.wrap{position:relative;z-index:2;min-height:100vh;display:flex;justify-content:center;align-items:center;padding:10px}
 .container{
   width:100%;max-width:580px;background:rgba(11,15,20,.85);
   backdrop-filter:blur(6px);border:1px solid var(--neon);
@@ -29,12 +31,13 @@ input,textarea,select{
   padding:10px;margin:6px 0 10px;font-size:14px
 }
 textarea{min-height:120px;resize:none}
-.row{display:flex;gap:10px}
+.row{display:flex;gap:10px;align-items:center}
 button{
   flex:1;padding:12px 0;background:#000;color:var(--neon);
   border:1px solid var(--neon);border-radius:12px;
   font-weight:bold;cursor:pointer;text-shadow:0 0 6px var(--neon)
 }
+button.small{flex:0.4}
 .progress{width:100%;height:8px;background:#022;border-radius:6px;overflow:hidden;margin:6px 0 10px}
 .bar{height:100%;width:0%;background:linear-gradient(90deg,#00ff9c,#00cfff);transition:width .15s}
 footer{text-align:center;font-size:11px;opacity:.6;margin-top:10px}
@@ -49,7 +52,21 @@ footer{text-align:center;font-size:11px;opacity:.6;margin-top:10px}
     <h1>🖥️ R-CODE NEON v14</h1>
 
     <label>MASTER KEY</label>
-    <input id="key">
+    <div class="row">
+      <input id="key">
+      <button class="small" onclick="generateKey()">🎲</button>
+    </div>
+
+    <label>EXPIRY (encode time)</label>
+    <div class="row">
+      <input id="expiryValue" type="number" min="0">
+      <select id="expiryUnit">
+        <option value="none">No Expiry</option>
+        <option value="minutes">Minutes</option>
+        <option value="hours">Hours</option>
+        <option value="days">Days</option>
+      </select>
+    </div>
 
     <label>INPUT</label>
     <textarea id="input"></textarea>
@@ -65,12 +82,12 @@ footer{text-align:center;font-size:11px;opacity:.6;margin-top:10px}
     <textarea id="output" readonly></textarea>
     <button onclick="copyOutput()">📋 COPY</button>
 
-    <footer>Matrix • Control ON/OFF • Cache-safe</footer>
+    <footer>Matrix • JSON Control • Cache Safe</footer>
   </div>
 </div>
 
 <script>
-/* ================= CONTROL (CACHE-SAFE) ================= */
+/* ================= JSON CONTROL (HOSTING POWER) ================= */
 const CONTROL_URL = "https://oxygen120.github.io/rcode-control/control.json";
 
 async function checkControl(){
@@ -78,11 +95,9 @@ async function checkControl(){
     const res = await fetch(CONTROL_URL + "?t=" + Date.now(), { cache:"no-store" });
     const c = await res.json();
 
-    if(c.expiresAt){
-      if(new Date() > new Date(c.expiresAt)){
-        lockPage("⏳ ACCESS EXPIRED","This page is no longer available.");
-        return;
-      }
+    if(c.expiresAt && new Date() > new Date(c.expiresAt)){
+      lockPage("⏳ ACCESS EXPIRED","This page is no longer available.");
+      return;
     }
     if(c.enabled === false){
       lockPage("⛔ ACCESS REVOKED", c.message || "Blocked by owner");
@@ -92,67 +107,91 @@ async function checkControl(){
     lockPage("⚠️ CONTROL ERROR","Unable to verify access.");
   }
 }
+
 function lockPage(title,msg){
-  document.body.innerHTML = `
+  document.body.innerHTML=`
     <div style="background:black;color:#00ff9c;font-family:monospace;
-      height:100vh;display:flex;align-items:center;justify-content:center;text-align:center">
+    height:100vh;display:flex;justify-content:center;align-items:center;text-align:center">
       <div><h1>${title}</h1><p>${msg}</p></div>
     </div>`;
 }
+
 checkControl();
 
 /* ================= MATRIX ================= */
 const canvas=document.getElementById("matrix"),ctx=canvas.getContext("2d");
 function resize(){canvas.width=innerWidth;canvas.height=innerHeight}
 resize();addEventListener("resize",resize);
-const chars="01アイウエオカキクケコサシスセソ";
+const letters="01アイウエオカキクケコサシスセソタチツテトナニヌネノマミムメモラリルレロ";
 const fs=14;let cols=Math.floor(canvas.width/fs);
 let drops=Array(cols).fill(1);
 setInterval(()=>{
-  ctx.fillStyle="rgba(0,0,0,.06)";ctx.fillRect(0,0,canvas.width,canvas.height);
-  ctx.fillStyle="#00ff9c";ctx.font=fs+"px monospace";
-  for(let i=0;i<drops.length;i++){
-    const t=chars[Math.random()*chars.length|0];
-    ctx.fillText(t,i*fs,drops[i]*fs);
-    if(drops[i]*fs>canvas.height && Math.random()>0.975) drops[i]=0;
-    drops[i]++;
-  }
+ ctx.fillStyle="rgba(0,0,0,.06)";ctx.fillRect(0,0,canvas.width,canvas.height);
+ ctx.fillStyle="#00ff9c";ctx.font=fs+"px monospace";
+ for(let i=0;i<drops.length;i++){
+  const t=letters[Math.random()*letters.length|0];
+  ctx.fillText(t,i*fs,drops[i]*fs);
+  if(drops[i]*fs>canvas.height&&Math.random()>0.975)drops[i]=0;
+  drops[i]++;
+ }
 },33);
 
-/* ================= CRYPTO (SIMPLE) ================= */
+/* ================= CRYPTO ================= */
 const te=new TextEncoder(),td=new TextDecoder();
 function hash32(s){let h=2166136261;for(let c of s){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return(h>>>0).toString(16)}
 function xorBytes(d,k){const o=new Uint8Array(d.length);for(let i=0;i<d.length;i++)o[i]=d[i]^k[i%k.length];return o}
 function toB64(b){return btoa(String.fromCharCode(...b))}
 function fromB64(s){return Uint8Array.from(atob(s),c=>c.charCodeAt(0))}
+function expiryToMs(v,u){
+ if(u==="none")return 0;const n=+v;if(!n||n<=0)return 0;
+ if(u==="minutes")return n*6e4;
+ if(u==="hours")return n*36e5;
+ if(u==="days")return n*864e5;
+ return 0;
+}
 
-/* ================= UI ================= */
+/* Random key */
+function generateKey(){
+ const c="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%!*";
+ let k="";for(let i=0;i<16;i++)k+=c[Math.random()*c.length|0];
+ key.value=k;navigator.clipboard.writeText(k);
+ alert("🔑 Random key generated & copied");
+}
+
+/* Terminal helpers */
+function typeOut(txt,cb){
+ output.value="";let i=0;
+ const t=setInterval(()=>{output.value+=txt[i++]||"";if(i>txt.length){clearInterval(t);cb&&cb();}},20);
+}
 function runProgress(done){
-  bar.style.width="0%";let p=0;
-  const t=setInterval(()=>{p+=Math.random()*18;if(p>=100){p=100;clearInterval(t);done()}bar.style.width=p+"%"},120);
-}
-function typeOut(txt){
-  output.value="";let i=0;
-  const t=setInterval(()=>{output.value+=txt[i++]||"";output.scrollTop=output.scrollHeight;if(i>txt.length)clearInterval(t)},20);
+ bar.style.width="0%";let p=0;
+ const t=setInterval(()=>{p+=Math.random()*18;if(p>=100){p=100;clearInterval(t);done()}bar.style.width=p+"%"},120);
 }
 
-/* ================= ACTIONS ================= */
+/* Encode */
 function encode(){
-  const k=key.value,txt=input.value;if(!k||!txt)return alert("Key & text required");
-  let d=te.encode(txt),kb=te.encode(k);for(let i=0;i<1000;i++)d=xorBytes(d,kb);
-  const token=hash32(k+toB64(d));
-  output.value=btoa(token+"|0|"+toB64(d));
+ const k=key.value,txt=input.value;if(!k||!txt)return alert("Key & text required");
+ let d=te.encode(txt),kb=te.encode(k);for(let i=0;i<1000;i++)d=xorBytes(d,kb);
+ const token=hash32(k+toB64(d));
+ const ms=expiryToMs(expiryValue.value,expiryUnit.value);
+ const exp=ms?Date.now()+ms:0;
+ output.value=btoa(token+"|"+exp+"|"+toB64(d));
 }
+
+/* Decode */
 function decode(){
-  const k=key.value,enc=input.value;if(!k||!enc)return alert("Key & encrypted text required");
-  let raw;try{raw=atob(enc)}catch{return typeOut("Invalid data")}
-  const [token,exp,b64]=raw.split("|"); if(!b64)return typeOut("Corrupted payload");
-  runProgress(()=>{
-    let d=fromB64(b64),kb=te.encode(k);for(let i=0;i<1000;i++)d=xorBytes(d,kb);
-    if(hash32(k+toB64(d))!==token) return typeOut("❌ WRONG KEY");
-    typeOut(td.decode(d));
-  });
+ const k=key.value,enc=input.value;if(!k||!enc)return alert("Key & encrypted text required");
+ let raw;try{raw=atob(enc)}catch{return typeOut("Invalid data")}
+ const p=raw.split("|");if(p.length!==3)return typeOut("Corrupted payload");
+ const [token,exp,b64]=p;if(exp!=="0"&&Date.now()>+exp)return typeOut("⏳ MESSAGE EXPIRED");
+ runProgress(()=>{
+  let d=fromB64(b64),kb=te.encode(k);for(let i=0;i<1000;i++)d=xorBytes(d,kb);
+  if(hash32(k+toB64(d))!==token)return typeOut("❌ WRONG KEY");
+  typeOut(td.decode(d));
+ });
 }
+
+/* Copy */
 function copyOutput(){if(!output.value)return;navigator.clipboard.writeText(output.value);alert("Copied")}
 </script>
 </body>
