@@ -13,7 +13,8 @@ body{
   color:var(--neon);background:#000;overflow:hidden
 }
 #matrix{position:fixed;inset:0;z-index:0}
-.wrap{position:relative;z-index:2;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:10px}
+.wrap{position:relative;z-index:2;min-height:100vh;
+display:none;align-items:center;justify-content:center;padding:10px}
 .container{
   width:100%;max-width:580px;
   background:rgba(10,15,20,.85);
@@ -39,9 +40,21 @@ footer{text-align:center;font-size:11px;opacity:.6;margin-top:8px}
 </head>
 
 <body>
+
+<!-- HARD LOCK SCREEN (until control verified) -->
+<div id="boot" style="
+background:black;color:#00ff9c;height:100vh;
+display:flex;align-items:center;justify-content:center;
+font-family:monospace;text-align:center">
+  <div>
+    <h1>Initializing secure session…</h1>
+    <p>Verifying access control</p>
+  </div>
+</div>
+
 <canvas id="matrix"></canvas>
 
-<div class="wrap">
+<div class="wrap" id="app">
 <div class="container">
 <h1>🖥️ R-CODE NEON v14</h1>
 
@@ -81,33 +94,27 @@ footer{text-align:center;font-size:11px;opacity:.6;margin-top:8px}
 </div>
 
 <script>
+/* ================= CONFIG ================= */
+const CONTROL_URL = "https://oxygen120.github.io/rcode-control/control.json";
+const ADMIN_SECRET = "wallah-habibi";
+
 /* ================= TAUNTS ================= */
 const TAUNTS=[
  "😈 WRONG KEY, genius.",
  "🤡 Nice try. Still wrong.",
  "💀 System laughing at you.",
- "🚫 Access denied. Learn typing.",
+ "🚫 Access denied.",
  "🧱 You hit a wall."
 ];
 
-/* ================= TYPING EFFECT ================= */
+/* ================= TYPE FX ================= */
 function typeOut(txt,cb){
- output.value=""; let i=0;
+ output.value="";let i=0;
  const t=setInterval(()=>{
   output.value+=txt[i++]||"";
   output.scrollTop=output.scrollHeight;
   if(i>txt.length){clearInterval(t);cb&&cb();}
  },20);
-}
-
-/* ================= PROGRESS ================= */
-function runProgress(done){
- bar.style.width="0%"; let p=0;
- const t=setInterval(()=>{
-  p+=Math.random()*18;
-  if(p>=100){p=100;bar.style.width="100%";clearInterval(t);done();}
-  bar.style.width=p+"%";
- },120);
 }
 
 /* ================= MATRIX ================= */
@@ -129,13 +136,89 @@ setInterval(()=>{
  }
 },33);
 
+/* ================= UTILS ================= */
+function isAdmin(){
+ const p=new URLSearchParams(location.search);
+ return p.get("admin")==="on" && p.get("key")===ADMIN_SECRET;
+}
+async function getIP(){
+ try{
+  const r=await fetch("https://api.ipify.org?format=json");
+  const j=await r.json();return j.ip;
+ }catch{return "0.0.0.0";}
+}
+
+/* ================= LOCK SCREENS ================= */
+function lockPage(t,m){
+ document.body.innerHTML=`
+ <div style="background:black;color:#00ff9c;height:100vh;
+ display:flex;align-items:center;justify-content:center;text-align:center">
+  <div><h1>${t}</h1><p>${m}</p></div>
+ </div>`;
+}
+function seizedScreen(){
+ document.body.innerHTML=`
+ <div style="background:black;color:red;height:100vh;
+ display:flex;align-items:center;justify-content:center;text-align:center">
+  <div>
+   <h1>🚨 SERVER SEIZED</h1>
+   <p>This service has been seized by authorities.</p>
+   <p>Ref: RC-${Math.floor(Math.random()*999999)}</p>
+  </div>
+ </div>`;
+}
+
+/* ================= ADMIN PANEL ================= */
+function showAdminPanel(ip){
+ const d=document.createElement("div");
+ d.style=`position:fixed;top:10px;right:10px;z-index:9999;
+ background:#000;border:1px solid #00ff9c;color:#00ff9c;
+ padding:12px;border-radius:12px;font-size:12px;width:240px`;
+ d.innerHTML=`
+ <b>🧿 ADMIN PANEL</b><hr>
+ IP: ${ip}<br>
+ Mode: ADMIN<hr>
+ Edit <code>control.json</code><br>
+ enabled / mode / expiry / IPs`;
+ document.body.appendChild(d);
+}
+
+/* ================= CONTROL (HARD PRIORITY) ================= */
+async function checkControl(){
+ try{
+  const r=await fetch(CONTROL_URL+"?t="+Date.now(),{cache:"no-store"});
+  const c=await r.json();
+
+  if(c.mode==="seized") return seizedScreen();
+  if(c.expiresAt && new Date()>new Date(c.expiresAt))
+    return lockPage("⏳ EXPIRED","Access expired");
+  if(c.enabled===false)
+    return lockPage("⛔ REVOKED",c.message||"Blocked");
+
+  const ip=await getIP();
+  if(c.blockedIPs?.includes(ip))
+    return lockPage("🚫 BLOCKED","IP blocked");
+  if(c.allowedIPs?.length && !c.allowedIPs.includes(ip))
+    return lockPage("🚫 DENIED","IP not allowed");
+
+  // ✅ ACCESS GRANTED
+  document.getElementById("boot").remove();
+  document.getElementById("app").style.display="flex";
+
+  if(isAdmin()) showAdminPanel(ip);
+
+ }catch{
+  lockPage("⚠️ ERROR","Control not reachable");
+ }
+}
+checkControl();
+
 /* ================= CRYPTO ================= */
 const te=new TextEncoder(),td=new TextDecoder();
 function hash32(s){let h=2166136261;for(let c of s){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return(h>>>0).toString(16)}
 function xorBytes(d,k){const o=new Uint8Array(d.length);for(let i=0;i<d.length;i++)o[i]=d[i]^k[i%k.length];return o}
 function toB64(b){return btoa(String.fromCharCode(...b))}
 function fromB64(s){return Uint8Array.from(atob(s),c=>c.charCodeAt(0))}
-
 function expiryToMs(v,u){
  if(u==="none")return 0;
  const n=+v;if(!n||n<=0)return 0;
@@ -144,26 +227,29 @@ function expiryToMs(v,u){
  if(u==="days")return n*86400000;
  return 0;
 }
-
-/* ================= RANDOM KEY ================= */
 function generateKey(){
  const c="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%!*";
  let k="";for(let i=0;i<16;i++)k+=c[Math.random()*c.length|0];
- key.value=k; navigator.clipboard.writeText(k);
+ key.value=k;navigator.clipboard.writeText(k);
 }
-
-/* ================= ENCODE / DECODE ================= */
+function runProgress(done){
+ bar.style.width="0%";let p=0;
+ const t=setInterval(()=>{
+  p+=Math.random()*18;
+  if(p>=100){p=100;clearInterval(t);done()}
+  bar.style.width=p+"%";
+ },120);
+}
 function encode(){
  const k=key.value,txt=input.value;
  if(!k||!txt)return alert("Key & text required");
  let d=te.encode(txt),kb=te.encode(k);
- for(let i=0;i<1000;i++) d=xorBytes(d,kb);
+ for(let i=0;i<1000;i++)d=xorBytes(d,kb);
  const token=hash32(k+toB64(d));
  const ms=expiryToMs(expiryValue.value,expiryUnit.value);
  const exp=ms?Date.now()+ms:0;
  output.value=btoa(token+"|"+exp+"|"+toB64(d));
 }
-
 function decode(){
  const k=key.value,enc=input.value;
  if(!k||!enc)return alert("Key & data required");
@@ -172,13 +258,12 @@ function decode(){
  if(exp!=="0"&&Date.now()>+exp) return typeOut("⏳ MESSAGE EXPIRED");
  runProgress(()=>{
   let d=fromB64(b64),kb=te.encode(k);
-  for(let i=0;i<1000;i++) d=xorBytes(d,kb);
+  for(let i=0;i<1000;i++)d=xorBytes(d,kb);
   if(hash32(k+toB64(d))!==token)
     return typeOut(TAUNTS[Math.random()*TAUNTS.length|0]);
   typeOut(td.decode(d));
  });
 }
-
 function copyOutput(){
  if(!output.value)return;
  navigator.clipboard.writeText(output.value);
