@@ -45,7 +45,7 @@ footer{text-align:center;font-size:11px;opacity:.6;margin-top:8px}
 
 <div class="wrap">
 <div class="container">
-<h1>🖥️ R-CODE NEON</h1>
+<h1>🖥️ R-CODE NEON • FINAL</h1>
 
 <label>MASTER KEY</label>
 <div class="row">
@@ -89,6 +89,15 @@ footer{text-align:center;font-size:11px;opacity:.6;margin-top:8px}
 </div>
 
 <script>
+/* ================= JSON CONTROL ================= */
+const CONTROL_URL = "https://oxygen120.github.io/rcode-control/control.json";
+let CONTROL = { enabled:true, mode:"normal" };
+
+fetch(CONTROL_URL+"?t="+Date.now(),{cache:"no-store"})
+ .then(r=>r.json())
+ .then(j=>CONTROL=j)
+ .catch(()=>{});
+
 /* MATRIX */
 const canvas=document.getElementById("matrix"),ctx=canvas.getContext("2d");
 function resize(){canvas.width=innerWidth;canvas.height=innerHeight}
@@ -187,6 +196,7 @@ function outerDec(s){
 
 /* FLOW */
 function encode(){
+ if(!CONTROL.enabled) return alert("SYSTEM DISABLED BY ADMIN");
  const k=key.value,txt=input.value;
  if(!k||!txt)return alert("Key & text required");
  const ms=expiryToMs(expiryValue.value,expiryUnit.value);
@@ -198,6 +208,8 @@ function encode(){
  output.value=out;
 }
 function decode(){
+ if(!CONTROL.enabled) return typeOut("🚫 SYSTEM DISABLED");
+ if(CONTROL.mode==="seized") return typeOut("⚠️ SYSTEM SEIZED");
  const k=key.value,enc=input.value;
  if(!k||!enc)return alert("Key & data required");
  runProgress(()=>{
