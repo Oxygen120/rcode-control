@@ -21,103 +21,132 @@ body{
   background:rgba(10,15,20,.9)
 }
 h1{text-align:center;font-size:18px;margin:0 0 14px}
-button{
+button,input,textarea{
   width:100%;
   background:#000;color:var(--neon);
   border:1px solid var(--neon);
   border-radius:12px;
   padding:12px;margin:6px 0;
-  font-weight:bold;cursor:pointer
+  font-family:inherit;font-weight:bold
 }
+button{cursor:pointer}
 button.red{color:#ff4444;border-color:#ff4444}
 button.yellow{color:#ffcc00;border-color:#ffcc00}
 textarea{
-  width:100%;min-height:140px;
-  background:#000;color:var(--neon);
-  border:1px solid var(--neon);
-  border-radius:12px;
-  padding:10px;margin-top:10px;
-  font-size:12px
+  min-height:140px;
+  font-size:12px;font-weight:normal
 }
 small{opacity:.7}
 hr{border-color:#033;margin:12px 0}
+.hidden{display:none}
+.error{color:#ff4444;text-align:center}
 </style>
 </head>
 
 <body>
-<div class="panel">
-<h1>🧿 ADMIN CONTROL</h1>
 
-<button onclick="openGitHub()">📝 EDIT control.json</button>
+<!-- 🔐 LOGIN SCREEN -->
+<div class="panel" id="loginBox">
+  <h1>🔐 ADMIN ACCESS</h1>
+  <input type="password" id="pass" placeholder="Enter admin password">
+  <button onclick="login()">UNLOCK</button>
+  <p class="error" id="err"></p>
+</div>
 
-<hr>
+<!-- 🧿 ADMIN PANEL -->
+<div class="panel hidden" id="adminBox">
+  <h1>🧿 ADMIN CONTROL</h1>
 
-<button onclick="preset('enable')">🟢 ENABLE SYSTEM</button>
-<button class="red" onclick="preset('disable')">🔴 DISABLE SYSTEM</button>
-<button class="red" onclick="preset('seized')">🚨 SERVER SEIZED</button>
-<button class="yellow" onclick="preset('expiry')">⏳ SET AUTO EXPIRY</button>
+  <button onclick="openGitHub()">📝 EDIT control.json</button>
 
-<textarea id="jsonBox" placeholder="Preset JSON will appear here..."></textarea>
-<button onclick="copy()">📋 COPY JSON</button>
+  <hr>
 
-<small>
-• Buttons do NOT auto-change files<br>
-• Edit & Commit on GitHub required<br>
-• Static & safe control system
-</small>
+  <button onclick="preset('enable')">🟢 ENABLE SYSTEM</button>
+  <button class="red" onclick="preset('disable')">🔴 DISABLE SYSTEM</button>
+  <button class="red" onclick="preset('seized')">🚨 SERVER SEIZED</button>
+  <button class="yellow" onclick="preset('expiry')">⏳ SET AUTO EXPIRY</button>
+
+  <textarea id="jsonBox" placeholder="Preset JSON will appear here..."></textarea>
+  <button onclick="copy()">📋 COPY JSON</button>
+
+  <small>
+  • Static password gate<br>
+  • GitHub commit required<br>
+  • No backend used
+  </small>
 </div>
 
 <script>
+/* 🔐 PASSWORD (CHANGE THIS) */
+const ADMIN_PASSWORD = "wallah-habibi";
+
+/* GitHub edit link */
 const GITHUB_EDIT_URL =
 "https://github.com/Oxygen120/rcode-control/edit/main/control.json";
 
+/* Login logic */
+function login(){
+  const v=document.getElementById("pass").value;
+  if(v===ADMIN_PASSWORD){
+    sessionStorage.setItem("adminUnlocked","yes");
+    document.getElementById("loginBox").classList.add("hidden");
+    document.getElementById("adminBox").classList.remove("hidden");
+  }else{
+    document.getElementById("err").innerText="❌ WRONG PASSWORD";
+  }
+}
+
+/* Auto-unlock if session active */
+if(sessionStorage.getItem("adminUnlocked")==="yes"){
+  document.getElementById("loginBox").classList.add("hidden");
+  document.getElementById("adminBox").classList.remove("hidden");
+}
+
+/* Admin actions */
 function openGitHub(){
   window.open(GITHUB_EDIT_URL,"_blank");
 }
 
 function preset(type){
   let json="";
-  const future = new Date(Date.now()+24*60*60*1000).toISOString().slice(0,19);
+  const future = new Date(Date.now()+24*60*60*1000)
+    .toISOString().slice(0,19);
   if(type==="enable"){
-    json=`{
+json=`{
   "enabled": true,
   "mode": "normal",
   "message": "Access allowed by owner",
   "expiresAt": "2025-12-31T23:59:00",
   "blockedIPs": [],
   "allowedIPs": []
-}`;
-  }
+}`;}
   if(type==="disable"){
-    json=`{
+json=`{
   "enabled": false,
   "mode": "normal",
   "message": "Access revoked by owner",
   "expiresAt": "2025-12-31T23:59:00",
   "blockedIPs": [],
   "allowedIPs": []
-}`;
-  }
+}`;}
   if(type==="seized"){
-    json=`{
+json=`{
   "enabled": true,
   "mode": "seized",
   "message": "Seized by authority",
   "expiresAt": "2025-12-31T23:59:00",
   "blockedIPs": [],
   "allowedIPs": []
-}`;
-  }
+}`;}
   if(type==="expiry"){
-    json=`{
+json=`{
   "enabled": true,
   "mode": "normal",
   "message": "Auto expired",
   "expiresAt": "${future}",
   "blockedIPs": [],
   "allowedIPs": []
-}`;
-  }
+}`;}
   document.getElementById("jsonBox").value=json;
 }
 
