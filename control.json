@@ -1,14 +1,8 @@
 {
-  "enabled": "false",
+  "enabled": false,
   "mode": "normal",
-  "message": "System online",
-
+  "message": "Access revoked by owner",
   "expiresAt": "2025-12-31T23:59:00",
-
-  "versionsAllowed": ["v1"],
-
-  "revokedTokens": [],
-
   "blockedIPs": [],
   "allowedIPs": []
 }
