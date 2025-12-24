@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>R-CODE NEON • FINAL LOCK</title>
+<title>R-CODE NEON v21</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 :root{--neon:#00ff9c}
@@ -45,7 +45,7 @@ footer{text-align:center;font-size:11px;opacity:.6;margin-top:8px}
 
 <div class="wrap">
 <div class="container">
-<h1>🖥️ R-CODE NEON</h1>
+<h1>🖥️ R-CODE NEON v21</h1>
 
 <label>MASTER KEY</label>
 <div class="row">
@@ -84,27 +84,26 @@ footer{text-align:center;font-size:11px;opacity:.6;margin-top:8px}
 <textarea id="output" readonly></textarea>
 <button onclick="copyOutput()">📋 COPY</button>
 
-<footer>Fixed Alphabet • Chaos • Depth Locked</footer>
+<footer>JSON Control • Fixed Alphabet • Chaos • v21</footer>
 </div>
 </div>
 
 <script>
-/* ================= JSON CONTROL ================= */
+/* ========== JSON CONTROL ========== */
 const CONTROL_URL = "https://oxygen120.github.io/rcode-control/control.json";
 let CONTROL = { enabled:true, mode:"normal" };
 
-fetch(CONTROL_URL+"?t="+Date.now(),{cache:"no-store"})
- .then(r=>r.json())
- .then(j=>CONTROL=j)
+fetch(CONTROL_URL + "?v=" + Date.now(), { cache:"no-store" })
+ .then(r => { if(!r.ok) throw 0; return r.json(); })
+ .then(j => CONTROL = j)
  .catch(()=>{});
 
-/* MATRIX */
+/* ========== MATRIX ========== */
 const canvas=document.getElementById("matrix"),ctx=canvas.getContext("2d");
 function resize(){canvas.width=innerWidth;canvas.height=innerHeight}
 resize();addEventListener("resize",resize);
 const chars="01アイウエオカキクケコサシスセソ";
-const fs=14;let cols=Math.floor(canvas.width/fs);
-let drops=Array(cols).fill(1);
+const fs=14;let drops=Array(Math.floor(innerWidth/fs)).fill(1);
 setInterval(()=>{
  ctx.fillStyle="rgba(0,0,0,.06)";
  ctx.fillRect(0,0,canvas.width,canvas.height);
@@ -117,25 +116,7 @@ setInterval(()=>{
  }
 },33);
 
-/* FX */
-const TAUNTS=["😈 WRONG KEY","🤡 Nice try","💀 Decode failed"];
-function typeOut(txt){
- output.value="";let i=0;
- const t=setInterval(()=>{
-  output.value+=txt[i++]||"";
-  if(i>txt.length)clearInterval(t);
- },18);
-}
-function runProgress(done){
- bar.style.width="0%";let p=0;
- const t=setInterval(()=>{
-  p+=Math.random()*18;
-  if(p>=100){p=100;clearInterval(t);done()}
-  bar.style.width=p+"%";
- },120);
-}
-
-/* HELPERS */
+/* ========== CORE HELPERS ========== */
 const te=new TextEncoder(),td=new TextDecoder();
 function xorBytes(d,k){const o=new Uint8Array(d.length);for(let i=0;i<d.length;i++)o[i]=d[i]^k[i%k.length];return o}
 function hash32(s){let h=2166136261;for(let c of s){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return(h>>>0).toString(16)}
@@ -150,29 +131,28 @@ function expiryToMs(v,u){
  return 0;
 }
 
-/* RANDOM KEY */
+/* ========== RANDOM KEY ========== */
 function generateKey(){
  const c="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%!*";
  let k="";for(let i=0;i<16;i++)k+=c[Math.random()*c.length|0];
  key.value=k;navigator.clipboard.writeText(k);
 }
 
-/* FIRST LAYER — FIXED SUBSTITUTION */
+/* ========== FIXED SUBSTITUTION ========== */
 const SUB_PLAIN="ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const SUB_CIPHER="LZFQWERTYUIOPASDGHJKMNBVCX";
 const ENC={},DEC={};
 for(let i=0;i<26;i++){ENC[SUB_PLAIN[i]]=SUB_CIPHER[i];DEC[SUB_CIPHER[i]]=SUB_PLAIN[i];}
-function subEnc(t){return t.replace(/[A-Za-z]/g,c=>{const u=c.toUpperCase();if(!ENC[u])return c;const r=ENC[u];return c===u?r:r.toLowerCase()})}
-function subDec(t){return t.replace(/[A-Za-z]/g,c=>{const u=c.toUpperCase();if(!DEC[u])return c;const r=DEC[u];return c===u?r:r.toLowerCase()})}
+const subEnc=t=>t.replace(/[A-Za-z]/g,c=>{const u=c.toUpperCase();if(!ENC[u])return c;const r=ENC[u];return c===u?r:r.toLowerCase()});
+const subDec=t=>t.replace(/[A-Za-z]/g,c=>{const u=c.toUpperCase();if(!DEC[u])return c;const r=DEC[u];return c===u?r:r.toLowerCase()});
 
-/* CORE */
+/* ========== CORE ENCRYPTION ========== */
 function coreEncode(k,t,ms){
  let d=te.encode(t),kb=te.encode(k);
  for(let i=0;i<800;i++)d=xorBytes(d,kb);
- const p=toB64(d);
- const tok=hash32(k+p).slice(0,8);
+ const p=toB64(d),tok=hash32(k+p).slice(0,8);
  const exp=ms?Date.now()+ms:0;
- return "RC14::"+exp+"::"+p+"::"+tok;
+ return `RC14::${exp}::${p}::${tok}`;
 }
 function coreDecode(k,e){
  if(!e.startsWith("RC14::"))return null;
@@ -186,25 +166,23 @@ function coreDecode(k,e){
  return td.decode(d);
 }
 
-/* OUTER CHAOS */
-function outerEnc(s){return "ΩX::"+s.split("").map(c=>(c.charCodeAt(0)+18).toString(36)).join(".")}
-function outerDec(s){
+/* ========== OUTER CHAOS ========== */
+const outerEnc=s=>"ΩX::"+s.split("").map(c=>(c.charCodeAt(0)+18).toString(36)).join(".");
+const outerDec=s=>{
  if(!s.startsWith("ΩX::"))return null;
  let o="";for(let p of s.slice(4).split(".")){const n=parseInt(p,36);if(isNaN(n))return null;o+=String.fromCharCode(n-18)}
  return o;
-}
+};
 
-/* FLOW */
+/* ========== FLOW ========== */
 function encode(){
  if(!CONTROL.enabled) return alert("SYSTEM DISABLED BY ADMIN");
  const k=key.value,txt=input.value;
  if(!k||!txt)return alert("Key & text required");
- const ms=expiryToMs(expiryValue.value,expiryUnit.value);
- const d=+depth.value;
  let stage=subEnc(txt);
- let out=coreEncode(k,stage,ms);
- if(d>=2)out=outerEnc(out);
- if(d>=3)out=outerEnc(out);
+ let out=coreEncode(k,stage,expiryToMs(expiryValue.value,expiryUnit.value));
+ if(depth.value>=2)out=outerEnc(out);
+ if(depth.value>=3)out=outerEnc(out);
  output.value=out;
 }
 function decode(){
@@ -212,14 +190,12 @@ function decode(){
  if(CONTROL.mode==="seized") return typeOut("⚠️ SYSTEM SEIZED");
  const k=key.value,enc=input.value;
  if(!k||!enc)return alert("Key & data required");
- runProgress(()=>{
-  let cur=enc;
-  for(let i=0;i<2;i++){const t=outerDec(cur);if(t)cur=t}
-  const r=coreDecode(k,cur);
-  if(r)typeOut(subDec(r));
-  else typeOut(TAUNTS[Math.random()*TAUNTS.length|0]);
- });
+ let cur=enc;
+ for(let i=0;i<2;i++){const t=outerDec(cur);if(t)cur=t}
+ const r=coreDecode(k,cur);
+ r?typeOut(subDec(r)):typeOut("❌ DECODE FAILED");
 }
+function typeOut(t){output.value="";let i=0;const x=setInterval(()=>{output.value+=t[i++]||"";if(i>t.length)clearInterval(x)},18)}
 function copyOutput(){if(output.value)navigator.clipboard.writeText(output.value)}
 </script>
 </body>
