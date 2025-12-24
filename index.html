@@ -2,29 +2,48 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>R-CODE NEON • CHAOS v4</title>
+<title>R-CODE NEON • DEPTH</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 :root{--neon:#00ff9c}
 *{box-sizing:border-box}
 html,body{height:100%}
-body{margin:0;font-family:Courier New,monospace;background:#000;color:var(--neon);overflow:hidden}
+body{
+  margin:0;
+  font-family:Courier New,monospace;
+  background:#000;
+  color:var(--neon);
+  overflow:hidden
+}
 #matrix{position:fixed;inset:0;z-index:0}
-.wrap{position:relative;z-index:2;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:10px}
+.wrap{
+  position:relative;z-index:2;
+  min-height:100vh;
+  display:flex;align-items:center;justify-content:center;
+  padding:10px
+}
 .container{
-  width:100%;max-width:600px;background:rgba(10,15,20,.88);
-  border:1px solid var(--neon);border-radius:16px;padding:18px;
+  width:100%;max-width:600px;
+  background:rgba(10,15,20,.9);
+  border:1px solid var(--neon);
+  border-radius:16px;
+  padding:18px;
   box-shadow:0 0 25px rgba(0,255,156,.5)
 }
 h1{text-align:center;font-size:18px;margin:0 0 12px}
 label{font-size:12px;opacity:.8}
 input,textarea,select,button{
-  width:100%;background:#000;color:var(--neon);
-  border:1px solid var(--neon);border-radius:10px;
-  padding:10px;margin:6px 0;font-family:inherit
+  width:100%;
+  background:#000;
+  color:var(--neon);
+  border:1px solid var(--neon);
+  border-radius:10px;
+  padding:10px;
+  margin:6px 0;
+  font-family:inherit
 }
 textarea{min-height:120px;resize:none}
-.row{display:flex;gap:10px;align-items:center}
+.row{display:flex;gap:10px}
 button{cursor:pointer;font-weight:bold}
 button.small{flex:.4}
 .progress{width:100%;height:8px;background:#022;border-radius:6px;overflow:hidden}
@@ -37,46 +56,52 @@ footer{text-align:center;font-size:11px;opacity:.6;margin-top:8px}
 <canvas id="matrix"></canvas>
 
 <div class="wrap">
-  <div class="container">
-    <h1>🖥️ R-CODE NEON • CHAOS v4</h1>
+<div class="container">
+<h1>🖥️ R-CODE NEON • FINAL</h1>
 
-    <label>MASTER KEY</label>
-    <div class="row">
-      <input id="key" placeholder="Enter key">
-      <button class="small" onclick="generateKey()">🎲</button>
-    </div>
+<label>MASTER KEY</label>
+<div class="row">
+  <input id="key">
+  <button class="small" onclick="generateKey()">🎲</button>
+</div>
 
-    <label>EXPIRY (encode time)</label>
-    <div class="row">
-      <input id="expiryValue" type="number" min="0" placeholder="Value">
-      <select id="expiryUnit">
-        <option value="none">No Expiry</option>
-        <option value="minutes">Minutes</option>
-        <option value="hours">Hours</option>
-        <option value="days">Days</option>
-      </select>
-    </div>
+<label>DEPTH LEVEL</label>
+<input type="range" id="depth" min="1" max="3" value="2">
+<div style="display:flex;justify-content:space-between;font-size:11px;opacity:.7">
+  <span>Normal</span><span>Chaos</span><span>Extreme</span>
+</div>
 
-    <label>INPUT</label>
-    <textarea id="input" placeholder="Text or package"></textarea>
+<label>EXPIRY (encode time)</label>
+<div class="row">
+  <input id="expiryValue" type="number" min="0">
+  <select id="expiryUnit">
+    <option value="none">No Expiry</option>
+    <option value="minutes">Minutes</option>
+    <option value="hours">Hours</option>
+    <option value="days">Days</option>
+  </select>
+</div>
 
-    <div class="row">
-      <button onclick="encode()">ENCODE</button>
-      <button onclick="decode()">DECODE</button>
-    </div>
+<label>INPUT</label>
+<textarea id="input"></textarea>
 
-    <div class="progress"><div class="bar" id="bar"></div></div>
+<div class="row">
+  <button onclick="encode()">ENCODE</button>
+  <button onclick="decode()">DECODE</button>
+</div>
 
-    <label>OUTPUT (Terminal)</label>
-    <textarea id="output" readonly></textarea>
-    <button onclick="copyOutput()">📋 COPY</button>
+<div class="progress"><div class="bar" id="bar"></div></div>
 
-    <footer>Inner R-CODE • Outer CHAOS • High ambiguity</footer>
-  </div>
+<label>OUTPUT</label>
+<textarea id="output" readonly></textarea>
+<button onclick="copyOutput()">📋 COPY</button>
+
+<footer>Inner R-CODE • Outer Chaos • Depth Slider</footer>
+</div>
 </div>
 
 <script>
-/* ================= MATRIX ================= */
+/* MATRIX */
 const canvas=document.getElementById("matrix"),ctx=canvas.getContext("2d");
 function resize(){canvas.width=innerWidth;canvas.height=innerHeight}
 resize();addEventListener("resize",resize);
@@ -84,163 +109,135 @@ const chars="01アイウエオカキクケコサシスセソ";
 const fs=14;let cols=Math.floor(canvas.width/fs);
 let drops=Array(cols).fill(1);
 setInterval(()=>{
-  ctx.fillStyle="rgba(0,0,0,.06)";
-  ctx.fillRect(0,0,canvas.width,canvas.height);
-  ctx.fillStyle="#00ff9c";ctx.font=fs+"px monospace";
-  for(let i=0;i<drops.length;i++){
-    const t=chars[Math.random()*chars.length|0];
-    ctx.fillText(t,i*fs,drops[i]*fs);
-    if(drops[i]*fs>canvas.height&&Math.random()>0.98)drops[i]=0;
-    drops[i]++;
-  }
+ ctx.fillStyle="rgba(0,0,0,.06)";
+ ctx.fillRect(0,0,canvas.width,canvas.height);
+ ctx.fillStyle="#00ff9c";ctx.font=fs+"px monospace";
+ for(let i=0;i<drops.length;i++){
+  const t=chars[Math.random()*chars.length|0];
+  ctx.fillText(t,i*fs,drops[i]*fs);
+  if(drops[i]*fs>canvas.height&&Math.random()>0.98)drops[i]=0;
+  drops[i]++;
+ }
 },33);
 
-/* ================= FX ================= */
+/* FX */
 const TAUNTS=[
- "😈 WRONG KEY.",
- "🤡 Nice try.",
- "💀 No luck.",
- "🚫 Access denied.",
- "🧱 Hit the wall."
+ "😈 WRONG KEY",
+ "🤡 Nice try",
+ "💀 Decode failed",
+ "🚫 Access denied",
+ "🧱 Blocked"
 ];
 function typeOut(txt){
-  output.value="";let i=0;
-  const t=setInterval(()=>{
-    output.value+=txt[i++]||"";
-    output.scrollTop=output.scrollHeight;
-    if(i>txt.length)clearInterval(t);
-  },18);
+ output.value="";let i=0;
+ const t=setInterval(()=>{
+  output.value+=txt[i++]||"";
+  output.scrollTop=output.scrollHeight;
+  if(i>txt.length)clearInterval(t);
+ },18);
 }
 function runProgress(done){
-  bar.style.width="0%";let p=0;
-  const t=setInterval(()=>{
-    p+=Math.random()*18;
-    if(p>=100){p=100;clearInterval(t);done()}
-    bar.style.width=p+"%";
-  },120);
+ bar.style.width="0%";let p=0;
+ const t=setInterval(()=>{
+  p+=Math.random()*18;
+  if(p>=100){p=100;clearInterval(t);done()}
+  bar.style.width=p+"%";
+ },120);
 }
 
-/* ================= HELPERS ================= */
+/* HELPERS */
 const te=new TextEncoder(),td=new TextDecoder();
-function hash32(s){let h=2166136261;for(let c of s){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return(h>>>0).toString(16)}
 function xorBytes(d,k){const o=new Uint8Array(d.length);for(let i=0;i<d.length;i++)o[i]=d[i]^k[i%k.length];return o}
+function hash32(s){let h=2166136261;for(let c of s){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return(h>>>0).toString(16)}
 function toB64(b){return btoa(String.fromCharCode(...b))}
 function fromB64(s){return Uint8Array.from(atob(s),c=>c.charCodeAt(0))}
-function makeNoise(len=8){const c="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";let s="";for(let i=0;i<len;i++)s+=c[Math.random()*c.length|0];return s}
-function rotate(str,n){n%=str.length;return str.slice(n)+str.slice(0,n)}
 function expiryToMs(v,u){
-  if(u==="none")return 0;
-  const n=+v;if(!n||n<=0)return 0;
-  if(u==="minutes")return n*60000;
-  if(u==="hours")return n*3600000;
-  if(u==="days")return n*86400000;
-  return 0;
+ if(u==="none")return 0;
+ const n=+v;if(!n||n<=0)return 0;
+ if(u==="minutes")return n*60000;
+ if(u==="hours")return n*3600000;
+ if(u==="days")return n*86400000;
+ return 0;
 }
 
-/* ================= RANDOM KEY ================= */
+/* RANDOM KEY */
 function generateKey(){
-  const c="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%!*";
-  let k="";for(let i=0;i<16;i++)k+=c[Math.random()*c.length|0];
-  key.value=k;navigator.clipboard.writeText(k);
+ const c="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%!*";
+ let k="";for(let i=0;i<16;i++)k+=c[Math.random()*c.length|0];
+ key.value=k;navigator.clipboard.writeText(k);
 }
 
-/* ================= INNER R-CODE ================= */
-function coreEncode(k, txt, expMs){
-  let d=te.encode(txt),kb=te.encode(k);
-  for(let i=0;i<1000;i++)d=xorBytes(d,kb);
-  const payload=toB64(d);
-  const noise=makeNoise(6);
-  const rot=noise.length%7;
-  const rotated=rotate(payload,rot);
-  const token=hash32(k+rotated+noise).slice(0,8);
-  const exp=expMs?Date.now()+expMs:0;
-  return "RC14::v1::"+exp+"::"+noise+"::"+rotated+"::"+token;
+/* INNER R-CODE */
+function coreEncode(k,txt,ms){
+ let d=te.encode(txt),kb=te.encode(k);
+ for(let i=0;i<800;i++)d=xorBytes(d,kb);
+ const payload=toB64(d);
+ const token=hash32(k+payload).slice(0,8);
+ const exp=ms?Date.now()+ms:0;
+ return "RC14::"+exp+"::"+payload+"::"+token;
 }
-function coreDecode(k, enc){
-  if(!enc.startsWith("RC14::"))return null;
-  const p=enc.split("::"); if(p.length!==7)return null;
-  const [,ver,exp,noise,rotated,token]=p;
-  if(ver!=="v1")return null;
-  if(exp!=="0"&&Date.now()>+exp)return null;
-  const unrot=rotate(rotated,rotated.length-(noise.length%7));
-  let d; try{d=fromB64(unrot)}catch{return null}
-  const kb=te.encode(k);
-  for(let i=0;i<1000;i++)d=xorBytes(d,kb);
-  if(hash32(k+rotated+noise).slice(0,8)!==token)return null;
-  return td.decode(d);
+function coreDecode(k,enc){
+ if(!enc.startsWith("RC14::"))return null;
+ const p=enc.split("::");if(p.length!==4)return null;
+ const [,exp,payload,token]=p;
+ if(exp!=="0"&&Date.now()>+exp)return null;
+ let d;try{d=fromB64(payload)}catch{return null}
+ const kb=te.encode(k);
+ for(let i=0;i<800;i++)d=xorBytes(d,kb);
+ if(hash32(k+payload).slice(0,8)!==token)return null;
+ return td.decode(d);
 }
 
-/* ================= OUTER CHAOS v4 ================= */
-const EMOJI=["🧿","🌀","🔻","🔸","🧪","🧯","🧠","🕳️"];
-const WORDS=["alpha","delta","omega","zen","flux","void","axis","nova"];
-const GLYPHS=[0x25A0,0x25C6,0x25CF,0x25B2,0x25BC,0x25C9];
-const R=a=>a[Math.floor(Math.random()*a.length)];
-const ri=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
-const nowSalt=()=> (Date.now()%997).toString(36);
-
+/* OUTER CHAOS (STABLE) */
 function outerEncodeChaos(str){
-  const salt=nowSalt();
-  let blocks=[], order=[];
-  for(let i=0;i<str.length;i++){
-    const c=str.charCodeAt(i), m=ri(1,4);
-    let b;
-    if(m===1) b=(c+ri(7,31)).toString(36);
-    else if(m===2) b=R(WORDS)+"-"+(c+ri(9,27));
-    else if(m===3) b=R(EMOJI)+String.fromCharCode(R(GLYPHS)+(c%10));
-    else b=c.toString(2).split("").reverse().join("");
-    blocks.push(b); order.push(i);
-  }
-  const mix=blocks.map((v,i)=>({v,i})).sort(()=>Math.random()-.5);
-  const body=mix.map(x=>x.v).join("|");
-  const key=mix.map(x=>x.i).join(",");
-  const csReal=btoa(key+salt).slice(0,6);
-  const csDec1=btoa(body).slice(0,6);
-  const csDec2=btoa(salt).slice(0,6);
-  return `ΩX::${salt}::${body}::${csDec1}.${csReal}.${csDec2}`;
+ let arr=[];
+ for(let c of str){
+  arr.push((c.charCodeAt(0)+18).toString(36));
+ }
+ return "ΩX::"+arr.join(".");
+}
+function outerDecodeChaos(str){
+ if(!str.startsWith("ΩX::"))return null;
+ const body=str.slice(4).split(".");
+ let out="";
+ for(let p of body){
+  const n=parseInt(p,36);
+  if(isNaN(n))return null;
+  out+=String.fromCharCode(n-18);
+ }
+ return out;
 }
 
-function outerDecodeChaos(pkg){
-  if(!pkg.startsWith("ΩX::"))return null;
-  const p=pkg.split("::"); if(p.length!==5)return null;
-  const [,salt,body]=p;
-  const parts=body.split("|");
-  let out="";
-  for(let b of parts){
-    if(/^\w+-\d+$/.test(b)){
-      const n=parseInt(b.split("-")[1],10); if(!isNaN(n)) out+=String.fromCharCode(n-ri(9,27));
-    }else if(/^[0-9a-z]+$/.test(b)){
-      const n=parseInt(b,36); if(!isNaN(n)) out+=String.fromCharCode(n-ri(7,31));
-    }else if(/^[01]+$/.test(b)){
-      const n=parseInt(b.split("").reverse().join(""),2); if(!isNaN(n)) out+=String.fromCharCode(n);
-    }
-    // emoji/glyph noise ignored
-  }
-  return out.includes("RC14::") ? out : null;
-}
-
-/* ================= FLOW ================= */
+/* FLOW */
 function encode(){
-  const k=key.value, txt=input.value;
-  if(!k||!txt)return alert("Key & text required");
-  const ms=expiryToMs(expiryValue.value,expiryUnit.value);
-  const inner=coreEncode(k,txt,ms);
-  const outer=outerEncodeChaos(inner);
-  output.value=outer;
+ const k=key.value,txt=input.value;
+ if(!k||!txt)return alert("Key & text required");
+ const ms=expiryToMs(expiryValue.value,expiryUnit.value);
+ const depth=+document.getElementById("depth").value;
+
+ let out=coreEncode(k,txt,ms);
+ if(depth>=2) out=outerEncodeChaos(out);
+ if(depth>=3) out=outerEncodeChaos(out);
+
+ output.value=out;
 }
 function decode(){
-  const k=key.value, enc=input.value;
-  if(!k||!enc)return alert("Key & data required");
-  runProgress(()=>{
-    const inner=outerDecodeChaos(enc);
-    if(!inner) return typeOut("❌ OUTER LAYER FAILED");
-    const res=coreDecode(k,inner);
-    if(res) return typeOut(res);
-    typeOut(TAUNTS[Math.random()*TAUNTS.length|0]);
-  });
+ const k=key.value,enc=input.value;
+ if(!k||!enc)return alert("Key & data required");
+ runProgress(()=>{
+  let cur=enc;
+  for(let i=0;i<2;i++){
+   const t=outerDecodeChaos(cur);
+   if(t)cur=t;
+  }
+  const res=coreDecode(k,cur);
+  if(res)typeOut(res);
+  else typeOut(TAUNTS[Math.random()*TAUNTS.length|0]);
+ });
 }
 
-/* ================= COPY ================= */
-function copyOutput(){ if(output.value) navigator.clipboard.writeText(output.value); }
+/* COPY */
+function copyOutput(){if(output.value)navigator.clipboard.writeText(output.value);}
 </script>
 </body>
 </html>
