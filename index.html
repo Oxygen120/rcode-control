@@ -2,20 +2,17 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>R-CODE NEON v14</title>
+<title>R-CODE NEON • CHAOS v4</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 :root{--neon:#00ff9c}
 *{box-sizing:border-box}
 html,body{height:100%}
-body{
-  margin:0;font-family:Courier New,monospace;
-  background:#000;color:var(--neon);overflow:hidden
-}
+body{margin:0;font-family:Courier New,monospace;background:#000;color:var(--neon);overflow:hidden}
 #matrix{position:fixed;inset:0;z-index:0}
 .wrap{position:relative;z-index:2;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:10px}
 .container{
-  width:100%;max-width:580px;background:rgba(10,15,20,.85);
+  width:100%;max-width:600px;background:rgba(10,15,20,.88);
   border:1px solid var(--neon);border-radius:16px;padding:18px;
   box-shadow:0 0 25px rgba(0,255,156,.5)
 }
@@ -40,48 +37,45 @@ footer{text-align:center;font-size:11px;opacity:.6;margin-top:8px}
 <canvas id="matrix"></canvas>
 
 <div class="wrap">
-<div class="container">
-<h1>🖥️ R-CODE NEON v14</h1>
+  <div class="container">
+    <h1>🖥️ R-CODE NEON • CHAOS v4</h1>
 
-<label>MASTER KEY</label>
-<div class="row">
-  <input id="key">
-  <button class="small" onclick="generateKey()">🎲</button>
-</div>
+    <label>MASTER KEY</label>
+    <div class="row">
+      <input id="key" placeholder="Enter key">
+      <button class="small" onclick="generateKey()">🎲</button>
+    </div>
 
-<label>EXPIRY (encode time)</label>
-<div class="row">
-  <input id="expiryValue" type="number" min="0">
-  <select id="expiryUnit">
-    <option value="none">No Expiry</option>
-    <option value="minutes">Minutes</option>
-    <option value="hours">Hours</option>
-    <option value="days">Days</option>
-  </select>
-</div>
+    <label>EXPIRY (encode time)</label>
+    <div class="row">
+      <input id="expiryValue" type="number" min="0" placeholder="Value">
+      <select id="expiryUnit">
+        <option value="none">No Expiry</option>
+        <option value="minutes">Minutes</option>
+        <option value="hours">Hours</option>
+        <option value="days">Days</option>
+      </select>
+    </div>
 
-<label>INPUT</label>
-<textarea id="input"></textarea>
+    <label>INPUT</label>
+    <textarea id="input" placeholder="Text or package"></textarea>
 
-<div class="row">
-  <button onclick="encode()">ENCODE</button>
-  <button onclick="decode()">DECODE</button>
-</div>
+    <div class="row">
+      <button onclick="encode()">ENCODE</button>
+      <button onclick="decode()">DECODE</button>
+    </div>
 
-<div class="progress"><div class="bar" id="bar"></div></div>
+    <div class="progress"><div class="bar" id="bar"></div></div>
 
-<label>OUTPUT (Terminal)</label>
-<textarea id="output" readonly></textarea>
-<button onclick="copyOutput()">📋 COPY</button>
+    <label>OUTPUT (Terminal)</label>
+    <textarea id="output" readonly></textarea>
+    <button onclick="copyOutput()">📋 COPY</button>
 
-<footer>Exclusive R-CODE • Confidently-Wrong Decoys • Anti-AI</footer>
-</div>
+    <footer>Inner R-CODE • Outer CHAOS • High ambiguity</footer>
+  </div>
 </div>
 
 <script>
-/* ================= CONFIG ================= */
-const CONTROL_URL="https://oxygen120.github.io/rcode-control/control.json";
-
 /* ================= MATRIX ================= */
 const canvas=document.getElementById("matrix"),ctx=canvas.getContext("2d");
 function resize(){canvas.width=innerWidth;canvas.height=innerHeight}
@@ -103,11 +97,11 @@ setInterval(()=>{
 
 /* ================= FX ================= */
 const TAUNTS=[
- "😈 WRONG KEY, genius.",
- "🤡 Nice try. Still wrong.",
- "💀 System laughing at you.",
+ "😈 WRONG KEY.",
+ "🤡 Nice try.",
+ "💀 No luck.",
  "🚫 Access denied.",
- "🧱 You hit a wall."
+ "🧱 Hit the wall."
 ];
 function typeOut(txt){
   output.value="";let i=0;
@@ -115,7 +109,7 @@ function typeOut(txt){
     output.value+=txt[i++]||"";
     output.scrollTop=output.scrollHeight;
     if(i>txt.length)clearInterval(t);
-  },20);
+  },18);
 }
 function runProgress(done){
   bar.style.width="0%";let p=0;
@@ -132,11 +126,7 @@ function hash32(s){let h=2166136261;for(let c of s){h^=c.charCodeAt(0);h=Math.im
 function xorBytes(d,k){const o=new Uint8Array(d.length);for(let i=0;i<d.length;i++)o[i]=d[i]^k[i%k.length];return o}
 function toB64(b){return btoa(String.fromCharCode(...b))}
 function fromB64(s){return Uint8Array.from(atob(s),c=>c.charCodeAt(0))}
-function makeNoise(len=8){
-  const c="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-  let s="";for(let i=0;i<len;i++)s+=c[Math.random()*c.length|0];
-  return s;
-}
+function makeNoise(len=8){const c="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";let s="";for(let i=0;i<len;i++)s+=c[Math.random()*c.length|0];return s}
 function rotate(str,n){n%=str.length;return str.slice(n)+str.slice(0,n)}
 function expiryToMs(v,u){
   if(u==="none")return 0;
@@ -154,108 +144,103 @@ function generateKey(){
   key.value=k;navigator.clipboard.writeText(k);
 }
 
-/* ================= DECOYS ================= */
-const DECOY_TEXTS=[
-  "Meeting confirmed at 7 PM. Location unchanged.",
-  "Transaction approved. Reference ID generated.",
-  "System check complete. No anomalies detected."
-];
-function makeDecoy(){
-  return DECOY_TEXTS[Math.floor(Math.random()*DECOY_TEXTS.length)];
+/* ================= INNER R-CODE ================= */
+function coreEncode(k, txt, expMs){
+  let d=te.encode(txt),kb=te.encode(k);
+  for(let i=0;i<1000;i++)d=xorBytes(d,kb);
+  const payload=toB64(d);
+  const noise=makeNoise(6);
+  const rot=noise.length%7;
+  const rotated=rotate(payload,rot);
+  const token=hash32(k+rotated+noise).slice(0,8);
+  const exp=expMs?Date.now()+expMs:0;
+  return "RC14::v1::"+exp+"::"+noise+"::"+rotated+"::"+token;
+}
+function coreDecode(k, enc){
+  if(!enc.startsWith("RC14::"))return null;
+  const p=enc.split("::"); if(p.length!==7)return null;
+  const [,ver,exp,noise,rotated,token]=p;
+  if(ver!=="v1")return null;
+  if(exp!=="0"&&Date.now()>+exp)return null;
+  const unrot=rotate(rotated,rotated.length-(noise.length%7));
+  let d; try{d=fromB64(unrot)}catch{return null}
+  const kb=te.encode(k);
+  for(let i=0;i<1000;i++)d=xorBytes(d,kb);
+  if(hash32(k+rotated+noise).slice(0,8)!==token)return null;
+  return td.decode(d);
 }
 
-/* ================= ENCODE ================= */
+/* ================= OUTER CHAOS v4 ================= */
+const EMOJI=["🧿","🌀","🔻","🔸","🧪","🧯","🧠","🕳️"];
+const WORDS=["alpha","delta","omega","zen","flux","void","axis","nova"];
+const GLYPHS=[0x25A0,0x25C6,0x25CF,0x25B2,0x25BC,0x25C9];
+const R=a=>a[Math.floor(Math.random()*a.length)];
+const ri=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+const nowSalt=()=> (Date.now()%997).toString(36);
+
+function outerEncodeChaos(str){
+  const salt=nowSalt();
+  let blocks=[], order=[];
+  for(let i=0;i<str.length;i++){
+    const c=str.charCodeAt(i), m=ri(1,4);
+    let b;
+    if(m===1) b=(c+ri(7,31)).toString(36);
+    else if(m===2) b=R(WORDS)+"-"+(c+ri(9,27));
+    else if(m===3) b=R(EMOJI)+String.fromCharCode(R(GLYPHS)+(c%10));
+    else b=c.toString(2).split("").reverse().join("");
+    blocks.push(b); order.push(i);
+  }
+  const mix=blocks.map((v,i)=>({v,i})).sort(()=>Math.random()-.5);
+  const body=mix.map(x=>x.v).join("|");
+  const key=mix.map(x=>x.i).join(",");
+  const csReal=btoa(key+salt).slice(0,6);
+  const csDec1=btoa(body).slice(0,6);
+  const csDec2=btoa(salt).slice(0,6);
+  return `ΩX::${salt}::${body}::${csDec1}.${csReal}.${csDec2}`;
+}
+
+function outerDecodeChaos(pkg){
+  if(!pkg.startsWith("ΩX::"))return null;
+  const p=pkg.split("::"); if(p.length!==5)return null;
+  const [,salt,body]=p;
+  const parts=body.split("|");
+  let out="";
+  for(let b of parts){
+    if(/^\w+-\d+$/.test(b)){
+      const n=parseInt(b.split("-")[1],10); if(!isNaN(n)) out+=String.fromCharCode(n-ri(9,27));
+    }else if(/^[0-9a-z]+$/.test(b)){
+      const n=parseInt(b,36); if(!isNaN(n)) out+=String.fromCharCode(n-ri(7,31));
+    }else if(/^[01]+$/.test(b)){
+      const n=parseInt(b.split("").reverse().join(""),2); if(!isNaN(n)) out+=String.fromCharCode(n);
+    }
+    // emoji/glyph noise ignored
+  }
+  return out.includes("RC14::") ? out : null;
+}
+
+/* ================= FLOW ================= */
 function encode(){
   const k=key.value, txt=input.value;
   if(!k||!txt)return alert("Key & text required");
-
-  // REAL + DECOYS (all encrypted similarly)
-  let real = te.encode("REAL::"+txt);
-  let dec1 = te.encode("DECOY::"+makeDecoy());
-  let dec2 = te.encode("DECOY::"+makeDecoy());
-
-  const kb=te.encode(k);
-  function crypt(d){
-    let x=d; for(let i=0;i<1000;i++) x=xorBytes(x,kb);
-    return toB64(x);
-  }
-
-  const pReal=crypt(real);
-  const pDec1=crypt(dec1);
-  const pDec2=crypt(dec2);
-
-  const noise=makeNoise(6);
-  const rot=noise.length%7;
-
-  const pack=[
-    rotate(pReal,rot),
-    rotate(pDec1,rot+1),
-    rotate(pDec2,rot+2)
-  ].sort(()=>Math.random()-.5);
-
-  const token=hash32(k+pReal+noise).slice(0,8);
   const ms=expiryToMs(expiryValue.value,expiryUnit.value);
-  const exp=ms?Date.now()+ms:0;
-
-  output.value="RC14::v1::"+exp+"::"+noise+"::"+pack.join("~")+"::"+token;
+  const inner=coreEncode(k,txt,ms);
+  const outer=outerEncodeChaos(inner);
+  output.value=outer;
 }
-
-/* ================= DECODE ================= */
-async function decode(){
+function decode(){
   const k=key.value, enc=input.value;
   if(!k||!enc)return alert("Key & data required");
-
-  if(!enc.startsWith("RC14::"))return typeOut("❌ INVALID FORMAT");
-  const p=enc.split("::");
-  if(p.length!==7)return typeOut("❌ CORRUPTED DATA");
-
-  const [,ver,exp,noise,pack,token]=p;
-  if(ver!=="v1")return typeOut("UNSUPPORTED VERSION");
-  if(exp!=="0"&&Date.now()>+exp)return typeOut("⏳ MESSAGE EXPIRED");
-
-  // Admin revoke (optional)
-  try{
-    const r=await fetch(CONTROL_URL+"?t="+Date.now(),{cache:"no-store"});
-    const c=await r.json();
-    if(c.revokedTokens?.includes(token))
-      return typeOut("🚫 PAYLOAD REVOKED BY ADMIN");
-  }catch{}
-
-  const parts=pack.split("~");
-  const rot=noise.length%7;
-
   runProgress(()=>{
-    let foundDecoy=null;
-
-    for(const part of parts){
-      let raw;
-      try{ raw=fromB64(rotate(part,part.length-rot)); }catch{ continue; }
-      let x=raw, kb=te.encode(k);
-      for(let i=0;i<1000;i++) x=xorBytes(x,kb);
-      const text=td.decode(x);
-
-      // TRUE path (R-CODE only)
-      if(text.startsWith("REAL::")){
-        const chk=hash32(k+part+noise).slice(0,8);
-        if(chk===token){
-          return typeOut(text.replace("REAL::",""));
-        }
-      }
-      // DECOY path (confidently wrong)
-      if(text.startsWith("DECOY::")){
-        foundDecoy=text.replace("DECOY::","");
-      }
-    }
-    if(foundDecoy) return typeOut(foundDecoy);
+    const inner=outerDecodeChaos(enc);
+    if(!inner) return typeOut("❌ OUTER LAYER FAILED");
+    const res=coreDecode(k,inner);
+    if(res) return typeOut(res);
     typeOut(TAUNTS[Math.random()*TAUNTS.length|0]);
   });
 }
 
 /* ================= COPY ================= */
-function copyOutput(){
-  if(!output.value)return;
-  navigator.clipboard.writeText(output.value);
-}
+function copyOutput(){ if(output.value) navigator.clipboard.writeText(output.value); }
 </script>
 </body>
 </html>
