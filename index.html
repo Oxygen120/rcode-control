@@ -10,16 +10,13 @@
 html,body{height:100%}
 body{
   margin:0;font-family:Courier New,monospace;
-  color:var(--neon);background:#000;overflow:hidden
+  background:#000;color:var(--neon);overflow:hidden
 }
 #matrix{position:fixed;inset:0;z-index:0}
-.wrap{position:relative;z-index:2;min-height:100vh;
-display:none;align-items:center;justify-content:center;padding:10px}
+.wrap{position:relative;z-index:2;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:10px}
 .container{
-  width:100%;max-width:580px;
-  background:rgba(10,15,20,.85);
-  border:1px solid var(--neon);
-  border-radius:16px;padding:18px;
+  width:100%;max-width:580px;background:rgba(10,15,20,.85);
+  border:1px solid var(--neon);border-radius:16px;padding:18px;
   box-shadow:0 0 25px rgba(0,255,156,.5)
 }
 h1{text-align:center;font-size:18px;margin:0 0 12px}
@@ -40,21 +37,9 @@ footer{text-align:center;font-size:11px;opacity:.6;margin-top:8px}
 </head>
 
 <body>
-
-<!-- HARD LOCK SCREEN (until control verified) -->
-<div id="boot" style="
-background:black;color:#00ff9c;height:100vh;
-display:flex;align-items:center;justify-content:center;
-font-family:monospace;text-align:center">
-  <div>
-    <h1>Initializing secure session…</h1>
-    <p>Verifying access control</p>
-  </div>
-</div>
-
 <canvas id="matrix"></canvas>
 
-<div class="wrap" id="app">
+<div class="wrap">
 <div class="container">
 <h1>🖥️ R-CODE NEON v14</h1>
 
@@ -89,33 +74,13 @@ font-family:monospace;text-align:center">
 <textarea id="output" readonly></textarea>
 <button onclick="copyOutput()">📋 COPY</button>
 
-<footer>Matrix • JSON Control • Taunts • Typing FX</footer>
+<footer>Exclusive R-CODE • Confidently-Wrong Decoys • Anti-AI</footer>
 </div>
 </div>
 
 <script>
 /* ================= CONFIG ================= */
-const CONTROL_URL = "https://oxygen120.github.io/rcode-control/control.json";
-const ADMIN_SECRET = "wallah-habibi";
-
-/* ================= TAUNTS ================= */
-const TAUNTS=[
- "😈 WRONG KEY, genius.",
- "🤡 Nice try. Still wrong.",
- "💀 System laughing at you.",
- "🚫 Access denied.",
- "🧱 You hit a wall."
-];
-
-/* ================= TYPE FX ================= */
-function typeOut(txt,cb){
- output.value="";let i=0;
- const t=setInterval(()=>{
-  output.value+=txt[i++]||"";
-  output.scrollTop=output.scrollHeight;
-  if(i>txt.length){clearInterval(t);cb&&cb();}
- },20);
-}
+const CONTROL_URL="https://oxygen120.github.io/rcode-control/control.json";
 
 /* ================= MATRIX ================= */
 const canvas=document.getElementById("matrix"),ctx=canvas.getContext("2d");
@@ -125,148 +90,171 @@ const chars="01アイウエオカキクケコサシスセソ";
 const fs=14;let cols=Math.floor(canvas.width/fs);
 let drops=Array(cols).fill(1);
 setInterval(()=>{
- ctx.fillStyle="rgba(0,0,0,.06)";
- ctx.fillRect(0,0,canvas.width,canvas.height);
- ctx.fillStyle="#00ff9c";ctx.font=fs+"px monospace";
- for(let i=0;i<drops.length;i++){
-  const t=chars[Math.random()*chars.length|0];
-  ctx.fillText(t,i*fs,drops[i]*fs);
-  if(drops[i]*fs>canvas.height&&Math.random()>0.98)drops[i]=0;
-  drops[i]++;
- }
+  ctx.fillStyle="rgba(0,0,0,.06)";
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle="#00ff9c";ctx.font=fs+"px monospace";
+  for(let i=0;i<drops.length;i++){
+    const t=chars[Math.random()*chars.length|0];
+    ctx.fillText(t,i*fs,drops[i]*fs);
+    if(drops[i]*fs>canvas.height&&Math.random()>0.98)drops[i]=0;
+    drops[i]++;
+  }
 },33);
 
-/* ================= UTILS ================= */
-function isAdmin(){
- const p=new URLSearchParams(location.search);
- return p.get("admin")==="on" && p.get("key")===ADMIN_SECRET;
+/* ================= FX ================= */
+const TAUNTS=[
+ "😈 WRONG KEY, genius.",
+ "🤡 Nice try. Still wrong.",
+ "💀 System laughing at you.",
+ "🚫 Access denied.",
+ "🧱 You hit a wall."
+];
+function typeOut(txt){
+  output.value="";let i=0;
+  const t=setInterval(()=>{
+    output.value+=txt[i++]||"";
+    output.scrollTop=output.scrollHeight;
+    if(i>txt.length)clearInterval(t);
+  },20);
 }
-async function getIP(){
- try{
-  const r=await fetch("https://api.ipify.org?format=json");
-  const j=await r.json();return j.ip;
- }catch{return "0.0.0.0";}
-}
-
-/* ================= LOCK SCREENS ================= */
-function lockPage(t,m){
- document.body.innerHTML=`
- <div style="background:black;color:#00ff9c;height:100vh;
- display:flex;align-items:center;justify-content:center;text-align:center">
-  <div><h1>${t}</h1><p>${m}</p></div>
- </div>`;
-}
-function seizedScreen(){
- document.body.innerHTML=`
- <div style="background:black;color:red;height:100vh;
- display:flex;align-items:center;justify-content:center;text-align:center">
-  <div>
-   <h1>🚨 SERVER SEIZED</h1>
-   <p>This service has been seized by authorities.</p>
-   <p>Ref: RC-${Math.floor(Math.random()*999999)}</p>
-  </div>
- </div>`;
+function runProgress(done){
+  bar.style.width="0%";let p=0;
+  const t=setInterval(()=>{
+    p+=Math.random()*18;
+    if(p>=100){p=100;clearInterval(t);done()}
+    bar.style.width=p+"%";
+  },120);
 }
 
-/* ================= ADMIN PANEL ================= */
-function showAdminPanel(ip){
- const d=document.createElement("div");
- d.style=`position:fixed;top:10px;right:10px;z-index:9999;
- background:#000;border:1px solid #00ff9c;color:#00ff9c;
- padding:12px;border-radius:12px;font-size:12px;width:240px`;
- d.innerHTML=`
- <b>🧿 ADMIN PANEL</b><hr>
- IP: ${ip}<br>
- Mode: ADMIN<hr>
- Edit <code>control.json</code><br>
- enabled / mode / expiry / IPs`;
- document.body.appendChild(d);
-}
-
-/* ================= CONTROL (HARD PRIORITY) ================= */
-async function checkControl(){
- try{
-  const r=await fetch(CONTROL_URL+"?t="+Date.now(),{cache:"no-store"});
-  const c=await r.json();
-
-  if(c.mode==="seized") return seizedScreen();
-  if(c.expiresAt && new Date()>new Date(c.expiresAt))
-    return lockPage("⏳ EXPIRED","Access expired");
-  if(c.enabled===false)
-    return lockPage("⛔ REVOKED",c.message||"Blocked");
-
-  const ip=await getIP();
-  if(c.blockedIPs?.includes(ip))
-    return lockPage("🚫 BLOCKED","IP blocked");
-  if(c.allowedIPs?.length && !c.allowedIPs.includes(ip))
-    return lockPage("🚫 DENIED","IP not allowed");
-
-  // ✅ ACCESS GRANTED
-  document.getElementById("boot").remove();
-  document.getElementById("app").style.display="flex";
-
-  if(isAdmin()) showAdminPanel(ip);
-
- }catch{
-  lockPage("⚠️ ERROR","Control not reachable");
- }
-}
-checkControl();
-
-/* ================= CRYPTO ================= */
+/* ================= HELPERS ================= */
 const te=new TextEncoder(),td=new TextDecoder();
 function hash32(s){let h=2166136261;for(let c of s){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return(h>>>0).toString(16)}
 function xorBytes(d,k){const o=new Uint8Array(d.length);for(let i=0;i<d.length;i++)o[i]=d[i]^k[i%k.length];return o}
 function toB64(b){return btoa(String.fromCharCode(...b))}
 function fromB64(s){return Uint8Array.from(atob(s),c=>c.charCodeAt(0))}
+function makeNoise(len=8){
+  const c="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  let s="";for(let i=0;i<len;i++)s+=c[Math.random()*c.length|0];
+  return s;
+}
+function rotate(str,n){n%=str.length;return str.slice(n)+str.slice(0,n)}
 function expiryToMs(v,u){
- if(u==="none")return 0;
- const n=+v;if(!n||n<=0)return 0;
- if(u==="minutes")return n*60000;
- if(u==="hours")return n*3600000;
- if(u==="days")return n*86400000;
- return 0;
+  if(u==="none")return 0;
+  const n=+v;if(!n||n<=0)return 0;
+  if(u==="minutes")return n*60000;
+  if(u==="hours")return n*3600000;
+  if(u==="days")return n*86400000;
+  return 0;
 }
+
+/* ================= RANDOM KEY ================= */
 function generateKey(){
- const c="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%!*";
- let k="";for(let i=0;i<16;i++)k+=c[Math.random()*c.length|0];
- key.value=k;navigator.clipboard.writeText(k);
+  const c="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%!*";
+  let k="";for(let i=0;i<16;i++)k+=c[Math.random()*c.length|0];
+  key.value=k;navigator.clipboard.writeText(k);
 }
-function runProgress(done){
- bar.style.width="0%";let p=0;
- const t=setInterval(()=>{
-  p+=Math.random()*18;
-  if(p>=100){p=100;clearInterval(t);done()}
-  bar.style.width=p+"%";
- },120);
+
+/* ================= DECOYS ================= */
+const DECOY_TEXTS=[
+  "Meeting confirmed at 7 PM. Location unchanged.",
+  "Transaction approved. Reference ID generated.",
+  "System check complete. No anomalies detected."
+];
+function makeDecoy(){
+  return DECOY_TEXTS[Math.floor(Math.random()*DECOY_TEXTS.length)];
 }
+
+/* ================= ENCODE ================= */
 function encode(){
- const k=key.value,txt=input.value;
- if(!k||!txt)return alert("Key & text required");
- let d=te.encode(txt),kb=te.encode(k);
- for(let i=0;i<1000;i++)d=xorBytes(d,kb);
- const token=hash32(k+toB64(d));
- const ms=expiryToMs(expiryValue.value,expiryUnit.value);
- const exp=ms?Date.now()+ms:0;
- output.value=btoa(token+"|"+exp+"|"+toB64(d));
+  const k=key.value, txt=input.value;
+  if(!k||!txt)return alert("Key & text required");
+
+  // REAL + DECOYS (all encrypted similarly)
+  let real = te.encode("REAL::"+txt);
+  let dec1 = te.encode("DECOY::"+makeDecoy());
+  let dec2 = te.encode("DECOY::"+makeDecoy());
+
+  const kb=te.encode(k);
+  function crypt(d){
+    let x=d; for(let i=0;i<1000;i++) x=xorBytes(x,kb);
+    return toB64(x);
+  }
+
+  const pReal=crypt(real);
+  const pDec1=crypt(dec1);
+  const pDec2=crypt(dec2);
+
+  const noise=makeNoise(6);
+  const rot=noise.length%7;
+
+  const pack=[
+    rotate(pReal,rot),
+    rotate(pDec1,rot+1),
+    rotate(pDec2,rot+2)
+  ].sort(()=>Math.random()-.5);
+
+  const token=hash32(k+pReal+noise).slice(0,8);
+  const ms=expiryToMs(expiryValue.value,expiryUnit.value);
+  const exp=ms?Date.now()+ms:0;
+
+  output.value="RC14::v1::"+exp+"::"+noise+"::"+pack.join("~")+"::"+token;
 }
-function decode(){
- const k=key.value,enc=input.value;
- if(!k||!enc)return alert("Key & data required");
- let raw;try{raw=atob(enc)}catch{return typeOut("Invalid data")};
- const [token,exp,b64]=raw.split("|");
- if(exp!=="0"&&Date.now()>+exp) return typeOut("⏳ MESSAGE EXPIRED");
- runProgress(()=>{
-  let d=fromB64(b64),kb=te.encode(k);
-  for(let i=0;i<1000;i++)d=xorBytes(d,kb);
-  if(hash32(k+toB64(d))!==token)
-    return typeOut(TAUNTS[Math.random()*TAUNTS.length|0]);
-  typeOut(td.decode(d));
- });
+
+/* ================= DECODE ================= */
+async function decode(){
+  const k=key.value, enc=input.value;
+  if(!k||!enc)return alert("Key & data required");
+
+  if(!enc.startsWith("RC14::"))return typeOut("❌ INVALID FORMAT");
+  const p=enc.split("::");
+  if(p.length!==7)return typeOut("❌ CORRUPTED DATA");
+
+  const [,ver,exp,noise,pack,token]=p;
+  if(ver!=="v1")return typeOut("UNSUPPORTED VERSION");
+  if(exp!=="0"&&Date.now()>+exp)return typeOut("⏳ MESSAGE EXPIRED");
+
+  // Admin revoke (optional)
+  try{
+    const r=await fetch(CONTROL_URL+"?t="+Date.now(),{cache:"no-store"});
+    const c=await r.json();
+    if(c.revokedTokens?.includes(token))
+      return typeOut("🚫 PAYLOAD REVOKED BY ADMIN");
+  }catch{}
+
+  const parts=pack.split("~");
+  const rot=noise.length%7;
+
+  runProgress(()=>{
+    let foundDecoy=null;
+
+    for(const part of parts){
+      let raw;
+      try{ raw=fromB64(rotate(part,part.length-rot)); }catch{ continue; }
+      let x=raw, kb=te.encode(k);
+      for(let i=0;i<1000;i++) x=xorBytes(x,kb);
+      const text=td.decode(x);
+
+      // TRUE path (R-CODE only)
+      if(text.startsWith("REAL::")){
+        const chk=hash32(k+part+noise).slice(0,8);
+        if(chk===token){
+          return typeOut(text.replace("REAL::",""));
+        }
+      }
+      // DECOY path (confidently wrong)
+      if(text.startsWith("DECOY::")){
+        foundDecoy=text.replace("DECOY::","");
+      }
+    }
+    if(foundDecoy) return typeOut(foundDecoy);
+    typeOut(TAUNTS[Math.random()*TAUNTS.length|0]);
+  });
 }
+
+/* ================= COPY ================= */
 function copyOutput(){
- if(!output.value)return;
- navigator.clipboard.writeText(output.value);
+  if(!output.value)return;
+  navigator.clipboard.writeText(output.value);
 }
 </script>
 </body>
