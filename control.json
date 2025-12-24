@@ -1,7 +1,6 @@
 {
-  "enabled": true,
+  "enabled": false,
   "mode": "normal",
-  "message": "Access revoked by owner",
   "expiresAt": "2025-12-31T23:59:00",
   "blockedIPs": [],
   "allowedIPs": []
