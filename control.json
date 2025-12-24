@@ -1,6 +1,6 @@
 {
-  "enabled": false,
-  "mode": "normal",
+  "enabled": true,
+  "mode": "siezed",
   "expiresAt": "2025-12-31T23:59:00",
   "blockedIPs": [],
   "allowedIPs": []
