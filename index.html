@@ -9,22 +9,39 @@
 *{box-sizing:border-box}
 html,body{height:100%}
 body{
-  margin:0;font-family:Courier New,monospace;
-  background:#000;color:var(--neon);overflow:hidden
+  margin:0;
+  font-family:Courier New,monospace;
+  background:#000;
+  color:var(--neon);
+  overflow:hidden
 }
+
+/* MATRIX */
 #matrix{position:fixed;inset:0;z-index:0}
-.wrap{position:relative;z-index:2;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:10px}
+
+/* UI */
+.wrap{
+  position:relative;z-index:2;
+  min-height:100vh;
+  display:flex;align-items:center;justify-content:center;
+  padding:10px
+}
 .container{
-  width:100%;max-width:600px;background:rgba(10,15,20,.9);
-  border:1px solid var(--neon);border-radius:16px;padding:18px;
+  width:100%;max-width:600px;
+  background:rgba(10,15,20,.9);
+  border:1px solid var(--neon);
+  border-radius:16px;
+  padding:18px;
   box-shadow:0 0 25px rgba(0,255,156,.5)
 }
 h1{text-align:center;font-size:18px;margin:0 0 12px}
 label{font-size:12px;opacity:.8}
 input,textarea,select,button{
   width:100%;background:#000;color:var(--neon);
-  border:1px solid var(--neon);border-radius:10px;
-  padding:10px;margin:6px 0;font-family:inherit
+  border:1px solid var(--neon);
+  border-radius:10px;
+  padding:10px;margin:6px 0;
+  font-family:inherit
 }
 textarea{min-height:120px;resize:none}
 .row{display:flex;gap:10px}
@@ -34,17 +51,60 @@ button.small{flex:.4}
 .bar{height:100%;width:0%;background:linear-gradient(90deg,#00ff9c,#00cfff)}
 footer{text-align:center;font-size:11px;opacity:.6;margin-top:8px}
 
-/* ===== FULL PAGE LOCK ===== */
+/* LOCK */
 .lock{
   position:fixed;inset:0;z-index:9999;
   display:flex;align-items:center;justify-content:center;
-  background:#000;color:#00ff9c;text-align:center;
+  background:#000;color:#00ff9c;text-align:center
 }
 .lock .box{max-width:720px;padding:24px}
 .blink{animation:blink 1.2s infinite}
 @keyframes blink{0%,50%,100%{opacity:1}25%,75%{opacity:.3}}
 .spin{display:inline-block;animation:spin 1.2s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
+
+/* NEON SLIDER */
+input[type="range"]{
+  -webkit-appearance:none;appearance:none;
+  height:6px;
+  background:linear-gradient(90deg,#00ff9c,#00cfff);
+  border-radius:6px;
+  box-shadow:0 0 8px rgba(0,255,156,.6)
+}
+input[type="range"]::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;
+  width:18px;height:18px;border-radius:50%;
+  background:#00ff9c;
+  box-shadow:0 0 12px #00ff9c,0 0 24px rgba(0,255,156,.8)
+}
+input[type="range"]::-moz-range-thumb{
+  width:18px;height:18px;border-radius:50%;
+  background:#00ff9c;
+  box-shadow:0 0 12px #00ff9c,0 0 24px rgba(0,255,156,.8)
+}
+
+/* DEPTH GLOW */
+body.depth-2 .container{
+  box-shadow:0 0 35px rgba(0,255,156,.6)
+}
+body.depth-3 .container{
+  box-shadow:
+    0 0 40px rgba(0,255,156,.9),
+    0 0 80px rgba(0,255,156,.5)
+}
+
+/* MICRO SHAKE (BURST ONLY) */
+@keyframes microShake{
+  0%{transform:translate(0,0)}
+  20%{transform:translate(-1px,1px)}
+  40%{transform:translate(1px,-1px)}
+  60%{transform:translate(-1px,-1px)}
+  80%{transform:translate(1px,1px)}
+  100%{transform:translate(0,0)}
+}
+body.shake .container{
+  animation: microShake .15s infinite;
+}
 </style>
 </head>
 
@@ -97,7 +157,7 @@ footer{text-align:center;font-size:11px;opacity:.6;margin-top:8px}
 </div>
 
 <script>
-/* ===== JSON CONTROL ===== */
+/* JSON CONTROL */
 const CONTROL_URL="https://oxygen120.github.io/rcode-control/control.json";
 let CONTROL={enabled:true,mode:"normal"};
 
@@ -105,91 +165,81 @@ fetch(CONTROL_URL+"?v="+Date.now(),{cache:"no-store"})
  .then(r=>{if(!r.ok)throw 0;return r.json()})
  .then(j=>{
    CONTROL=j;
-   if(!CONTROL.enabled){
-     lockDevil();
-   }else if(CONTROL.mode==="seized"){
-     lockSeized();
-   }
+   if(!CONTROL.enabled) lockDevil();
+   else if(CONTROL.mode==="seized") lockSeized();
  })
  .catch(()=>{});
 
-/* ===== LOCK SCREENS ===== */
+/* LOCK SCREENS */
 function lockDevil(){
-  document.body.innerHTML=`
-  <div class="lock">
-    <div class="box">
-      <h1 class="blink">😈 SYSTEM DISABLED</h1>
-      <p style="font-size:28px">
-        <span class="spin">😂</span> HAHAHAHA <span class="spin">😈</span>
-      </p>
-      <p>Access revoked by Admin.<br/>Sit tight while the devil laughs…</p>
-      <p class="blink">⏳ Loading… ⌛ 🔄</p>
-    </div>
-  </div>`;
+ document.body.innerHTML=`<div class="lock"><div class="box">
+ <h1 class="blink">😈 SYSTEM DISABLED</h1>
+ <p><span class="spin">😂</span> HAHAHAHA <span class="spin">😈</span></p>
+ </div></div>`;
 }
 function lockSeized(){
-  document.body.innerHTML=`
-  <div class="lock">
-    <div class="box">
-      <h1>⚠️ SYSTEM SEIZED</h1>
-      <p>
-      This system has been formally seized and restricted by the administrator.
-      All cryptographic operations, transformations, and terminal access are
-      hereby suspended until further notice. Any attempt to bypass, analyze,
-      reverse, or interfere with this interface may be logged, ignored, or met
-      with deliberate misinformation.
-      </p>
-      <p>
-      You are advised to discontinue usage immediately. This notice serves as a
-      declaration of control, authority, and operational lockdown. Compliance is
-      expected. Thank you for your cooperation.
-      </p>
-      <p class="blink">— Administration</p>
-    </div>
-  </div>`;
+ document.body.innerHTML=`<div class="lock"><div class="box">
+ <h1>⚠️ SYSTEM SEIZED</h1>
+ <p>All operations suspended.</p>
+ </div></div>`;
 }
 
-/* ===== MATRIX ===== */
+/* MATRIX RAIN */
 const canvas=document.getElementById("matrix"),ctx=canvas.getContext("2d");
 function resize(){canvas.width=innerWidth;canvas.height=innerHeight}
 resize();addEventListener("resize",resize);
 const chars="01アイウエオカキクケコサシスセソ",fs=14;
-let drops=Array(Math.floor(innerWidth/fs)).fill(1);
-setInterval(()=>{
- ctx.fillStyle="rgba(0,0,0,.06)";
- ctx.fillRect(0,0,canvas.width,canvas.height);
- ctx.fillStyle="#00ff9c";ctx.font=fs+"px monospace";
- for(let i=0;i<drops.length;i++){
-  const t=chars[Math.random()*chars.length|0];
-  ctx.fillText(t,i*fs,drops[i]*fs);
-  if(drops[i]*fs>canvas.height&&Math.random()>0.98)drops[i]=0;
-  drops[i]++;
- }
-},33);
+let drops=Array(Math.floor(innerWidth/fs)).fill(1),matrixTimer;
 
-/* ===== HELPERS ===== */
+function startMatrix(){
+ clearInterval(matrixTimer);
+ const speed = depth.value==1 ? 60 : depth.value==2 ? 33 : 18;
+ matrixTimer=setInterval(()=>{
+  ctx.fillStyle="rgba(0,0,0,.06)";
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle="#00ff9c";
+  ctx.font=fs+"px monospace";
+  for(let i=0;i<drops.length;i++){
+    const t=chars[Math.random()*chars.length|0];
+    ctx.fillText(t,i*fs,drops[i]*fs);
+    if(drops[i]*fs>canvas.height&&Math.random()>0.98)drops[i]=0;
+    drops[i]++;
+  }
+ },speed);
+}
+startMatrix();
+
+/* DEPTH EFFECTS */
+function applyDepthGlow(){
+ document.body.classList.remove("depth-1","depth-2","depth-3");
+ document.body.classList.add("depth-"+depth.value);
+}
+function triggerShake(){
+ document.body.classList.add("shake");
+ setTimeout(()=>document.body.classList.remove("shake"),1800);
+}
+applyDepthGlow();
+depth.addEventListener("input",()=>{
+ startMatrix();
+ applyDepthGlow();
+ if(depth.value==3) triggerShake();
+});
+
+/* ===== ENCRYPTION STACK (UNCHANGED) ===== */
 const te=new TextEncoder(),td=new TextDecoder();
 function xorBytes(d,k){const o=new Uint8Array(d.length);for(let i=0;i<d.length;i++)o[i]=d[i]^k[i%k.length];return o}
 function hash32(s){let h=2166136261;for(let c of s){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return(h>>>0).toString(16)}
 function toB64(b){return btoa(String.fromCharCode(...b))}
 function fromB64(s){return Uint8Array.from(atob(s),c=>c.charCodeAt(0))}
-function expiryToMs(v,u){
- if(u==="none")return 0;
- const n=+v;if(!n||n<=0)return 0;
- if(u==="minutes")return n*60000;
- if(u==="hours")return n*3600000;
- if(u==="days")return n*86400000;
- return 0;
-}
+function expiryToMs(v,u){if(u==="none")return 0;const n=+v;if(!n||n<=0)return 0;return u==="minutes"?n*6e4:u==="hours"?n*36e5:u==="days"?n*864e5:0}
 
-/* ===== RANDOM KEY ===== */
 function generateKey(){
  const c="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%!*";
  let k="";for(let i=0;i<16;i++)k+=c[Math.random()*c.length|0];
  key.value=k;navigator.clipboard.writeText(k);
 }
 
-/* ===== FIXED SUBSTITUTION ===== */
+/* ABCD SUBSTITUTION */
 const SUB_PLAIN="ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const SUB_CIPHER="LZFQWERTYUIOPASDGHJKMNBVCX";
 const ENC={},DEC={};
@@ -197,7 +247,7 @@ for(let i=0;i<26;i++){ENC[SUB_PLAIN[i]]=SUB_CIPHER[i];DEC[SUB_CIPHER[i]]=SUB_PLA
 const subEnc=t=>t.replace(/[A-Za-z]/g,c=>{const u=c.toUpperCase();if(!ENC[u])return c;const r=ENC[u];return c===u?r:r.toLowerCase()});
 const subDec=t=>t.replace(/[A-Za-z]/g,c=>{const u=c.toUpperCase();if(!DEC[u])return c;const r=DEC[u];return c===u?r:r.toLowerCase()});
 
-/* ===== CORE ===== */
+/* CORE */
 function coreEncode(k,t,ms){
  let d=te.encode(t),kb=te.encode(k);
  for(let i=0;i<800;i++)d=xorBytes(d,kb);
@@ -217,7 +267,7 @@ function coreDecode(k,e){
  return td.decode(d);
 }
 
-/* ===== OUTER CHAOS ===== */
+/* OUTER CHAOS */
 const outerEnc=s=>"ΩX::"+s.split("").map(c=>(c.charCodeAt(0)+18).toString(36)).join(".");
 const outerDec=s=>{
  if(!s.startsWith("ΩX::"))return null;
@@ -225,7 +275,7 @@ const outerDec=s=>{
  return o;
 };
 
-/* ===== FLOW ===== */
+/* FLOW */
 function encode(){
  if(!CONTROL.enabled) return;
  const k=key.value,txt=input.value;
@@ -244,7 +294,10 @@ function decode(){
  const r=coreDecode(k,cur);
  r?typeOut(subDec(r)):typeOut("❌ DECODE FAILED");
 }
-function typeOut(t){output.value="";let i=0;const x=setInterval(()=>{output.value+=t[i++]||"";if(i>t.length)clearInterval(x)},18)}
+function typeOut(t){
+ output.value="";let i=0;
+ const x=setInterval(()=>{output.value+=t[i++]||"";if(i>t.length)clearInterval(x)},18);
+}
 function copyOutput(){if(output.value)navigator.clipboard.writeText(output.value)}
 </script>
 </body>
